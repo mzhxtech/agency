@@ -186,6 +186,7 @@
 
     // divider + left panel merge into full-width section at step >= 9
     gsap.set(MZ.els.divider, { autoAlpha: t >= 9 ? 0 : 1 });
+    gsap.set(MZ.els.riverCanvas, { autoAlpha: t >= 9 ? 0 : 1 });
     gsap.set(MZ.els.boat, { autoAlpha: t >= 9 ? 0 : 1 });
     gsap.set(MZ.els.leftPanel, { autoAlpha: t >= 9 ? 0 : 1 });
 
@@ -201,12 +202,13 @@
     if (t >= 11 && t <= 14) {
       gsap.set(MZ.els.arrow1, { autoAlpha: 1 });
       gsap.set(MZ.els.a1shaft, { strokeDashoffset: 0 });
-      gsap.set(MZ.els.a1head, { autoAlpha: 1, scale: 1, svgOrigin: `${a1g.tip.x} ${a1g.tip.y}` });
+      gsap.set(MZ.els.a1head, { autoAlpha: 1, x: 0, y: 0 });
       gsap.set(MZ.els.design, { x: p2.x, y: p2.y, rotation: 0, autoAlpha: 1 });
       gsap.set(MZ.els.designLbl, { yPercent: 0 });
     } else {
       gsap.set(MZ.els.arrow1, { autoAlpha: 0 });
       gsap.set(MZ.els.a1shaft, { strokeDashoffset: a1g.len });
+      gsap.set(MZ.els.a1head, { autoAlpha: 0, x: -9, y: 0 });
       gsap.set(MZ.els.design, { x: S.pw + s, y: p2.y, rotation: 165, autoAlpha: 0 });
       gsap.set(MZ.els.designLbl, { yPercent: 115 });
     }
@@ -225,12 +227,13 @@
     if (t === 13 || t === 14) {
       gsap.set(MZ.els.arrow2, { autoAlpha: 1 });
       gsap.set(MZ.els.a2shaft, { strokeDashoffset: 0 });
-      gsap.set(MZ.els.a2head, { autoAlpha: 1, scale: 1, svgOrigin: `${a2g.tip.x} ${a2g.tip.y}` });
+      gsap.set(MZ.els.a2head, { autoAlpha: 1, x: 0, y: 0 });
       gsap.set(MZ.els.exec, { x: C.x, y: C.y, scale: 1, autoAlpha: 1 });
       gsap.set(MZ.els.execLbl, { yPercent: 0 });
     } else {
       gsap.set(MZ.els.arrow2, { autoAlpha: 0 });
       gsap.set(MZ.els.a2shaft, { strokeDashoffset: a2g.len });
+      gsap.set(MZ.els.a2head, { autoAlpha: 0, x: -9, y: 0 });
       gsap.set(MZ.els.exec, { x: C.x, y: C.y, scale: 0.25, autoAlpha: 0 });
       gsap.set(MZ.els.execLbl, { yPercent: 115 });
     }

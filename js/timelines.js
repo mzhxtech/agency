@@ -31,14 +31,11 @@ window.MZT = (function () {
     // pendulum pivot dot above X
     tl.fromTo(MZ.els.joint, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, immediateRender: false }, flyEnd - 0.15);
 
-    // 3) the river pours in as one continuous band: banks, water, glints — then the little boat rides in
-    [[MZ.els.dBank, -0.10], [MZ.els.dChan, 0.0], [MZ.els.dWater, 0.14]].forEach(([el, off]) => {
-      tl.fromTo(el,
-        { strokeDashoffset: 1, autoAlpha: 0 },
-        { strokeDashoffset: 0, autoAlpha: 1, duration: 1.3, ease: 'power2.inOut', immediateRender: false },
-        flyEnd + off);
-    });
-    tl.fromTo(MZ.els.dCrest, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.9, immediateRender: false }, flyEnd + 0.55);
+    // 3) the river fades in (baked procedural water on canvas) — then the little boat rides in
+    tl.fromTo(MZ.els.riverCanvas,
+      { autoAlpha: 0 },
+      { autoAlpha: 1, duration: 1.5, ease: 'power2.inOut', immediateRender: false },
+      flyEnd - 0.10);
     boatTo(tl, 0, 0.05, flyEnd + 0.75, 1.3, 'power1.inOut');      // boat peeks in from the top
     tl.fromTo(MZ.els.boat, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, immediateRender: false }, flyEnd + 0.85);
 
@@ -59,7 +56,10 @@ window.MZT = (function () {
   function boatTo(tl, pFrom, pTo, at, dur, ease) {
     tl.fromTo(MZ.boat,
       { p: pFrom },
-      { p: pTo, duration: dur, ease: ease || 'power1.inOut', immediateRender: false, onUpdate: () => MZ.placeBoat() },
+      {
+        p: pTo, duration: dur, ease: ease || 'power1.inOut', immediateRender: false,
+        onUpdate: () => { MZ.placeBoat(); if (MZ.riverBoost) MZ.riverBoost(); },   // current quickens while sculling
+      },
       at);
   }
 
@@ -138,7 +138,7 @@ window.MZT = (function () {
     tl.to(MZ.els.grillWrap, { y: oc.y - MZ.S.vh * 0.10, scale: 0.8, autoAlpha: 0, duration: 0.4, ease: 'power2.in' }, 0);
     boatTo(tl, 1.0, 1.10, 0, 1.2, 'power1.in');                    // boat drifts off the bottom
     tl.to(MZ.els.boat, { autoAlpha: 0, duration: 0.7, ease: 'power2.in' }, 0.3);
-    tl.to(MZ.els.divider, { autoAlpha: 0, duration: 0.7, ease: 'power2.inOut' }, 0.15);
+    tl.to(MZ.els.riverCanvas, { autoAlpha: 0, duration: 0.7, ease: 'power2.inOut' }, 0.15);
     tl.to(MZ.els.leftPanel, { autoAlpha: 0, duration: 0.9, ease: 'power2.inOut' }, 0.15);
     MZ.els.letters.forEach((el, i) => {
       tl.to(el, { x: hl.pos(i).x, y: hl.y, scale: hl.s, duration: 1.05, ease: 'power4.inOut' }, 0.08 + i * 0.045);
@@ -179,9 +179,11 @@ window.MZT = (function () {
     tl.to(MZ.els.plan, { x: MZ.p1().x, y: MZ.p1().y, duration: 0.85, ease: 'power3.inOut' }, 0);
     tl.set(MZ.els.arrow1, { autoAlpha: 1, immediateRender: false }, 0.85);
     tl.fromTo(MZ.els.a1shaft, { strokeDashoffset: a1.len }, { strokeDashoffset: 0, duration: 0.5, ease: 'power2.out', immediateRender: false }, 0.88);
+    // head pops in with a small local slide along the arrow axis (no svgOrigin —
+    // it leaves residual translations when ancestors are scaled, e.g. flowGroup)
     tl.fromTo(MZ.els.a1head,
-      { autoAlpha: 0, scale: 0.2 },
-      { autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2)', immediateRender: false, svgOrigin: `${a1.tip.x} ${a1.tip.y}` }, 1.3);
+      { autoAlpha: 0, x: -9 },
+      { autoAlpha: 1, x: 0, duration: 0.3, ease: 'back.out(2)', immediateRender: false }, 1.3);
 
     tl.fromTo(MZ.els.design,
       { x: S.vw + s, y: p2.y, autoAlpha: 0 },
@@ -213,9 +215,10 @@ window.MZT = (function () {
 
     tl.set(MZ.els.arrow2, { autoAlpha: 1, immediateRender: false }, 0);
     tl.fromTo(MZ.els.a2shaft, { strokeDashoffset: a2.len }, { strokeDashoffset: 0, duration: 0.55, ease: 'power2.out', immediateRender: false }, 0.02);
+    // head pops with a local slide (see arrow1 note — avoids svgOrigin residuals)
     tl.fromTo(MZ.els.a2head,
-      { autoAlpha: 0, scale: 0.2 },
-      { autoAlpha: 1, scale: 1, duration: 0.32, ease: 'back.out(2)', immediateRender: false, svgOrigin: `${a2.tip.x} ${a2.tip.y}` }, 0.5);
+      { autoAlpha: 0, x: -9 },
+      { autoAlpha: 1, x: 0, duration: 0.32, ease: 'back.out(2)', immediateRender: false }, 0.5);
 
     tl.fromTo(MZ.els.exec,
       { x: C.x, y: C.y, scale: 0.25, autoAlpha: 0 },

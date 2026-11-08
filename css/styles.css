@@ -84,29 +84,16 @@ html, body {
   pointer-events: none;
 }
 
-/* ---- river layers (widths set in JS, all share the same path) ---- */
-#dBank, #dChan, #dWater {
-  fill: none;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-  stroke-dasharray: 1 1;
-  stroke-dashoffset: 1;
+/* the river: procedural water painted by js/river.js */
+#riverCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw; height: 100vh;
+  z-index: 3;
+  pointer-events: none;
   opacity: 0;
+  visibility: hidden;
 }
-#dBank { stroke: rgba(173,193,240,.15); }
-#dChan { stroke: url(#wgrad); }
-#dWater { stroke: rgba(150,182,255,.18); }
-#dCrest {
-  fill: none;
-  stroke: rgba(214,232,255,.34);
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-  stroke-width: 3px;
-  stroke-dasharray: 0.016 0.11;
-  opacity: 0;
-  animation: crestflow 7.2s linear infinite;
-}
-@keyframes crestflow { to { stroke-dashoffset: -1; } }
 
 /* ---- little paper boat ---- */
 #riverBoat {

@@ -46,10 +46,7 @@ window.MZ = (function () {
     els.swingX     = document.querySelector('#logoBox .swing');
     els.joint      = document.querySelector('#logoBox .joint');
     els.dPath      = document.querySelector('#dPath');
-    els.dBank      = document.querySelector('#dBank');
-    els.dChan      = document.querySelector('#dChan');
-    els.dWater     = document.querySelector('#dWater');
-    els.dCrest     = document.querySelector('#dCrest');
+    els.riverCanvas = document.querySelector('#riverCanvas');
     els.boat       = document.querySelector('#riverBoat');
     els.svcLayer   = document.querySelector('#svcLayer');
     els.grillWrap  = document.querySelector('#grillWrap');
@@ -601,15 +598,13 @@ window.MZ = (function () {
     els.footLine.querySelector('span').style.fontSize = Math.min(13.5, S.vw * 0.011) + 'px';
     gsap.set(els.footLine, { xPercent: -50, yPercent: -50, x: S.vw / 2, y: ctg.foot, autoAlpha: 0 });
 
-    // ---------- river + boat sizing ----------
+    // ---------- river canvas + boat sizing ----------
     const riverW = clamp(S.vh * 0.105, 62, 128);
-    els.dBank.style.strokeWidth = riverW + 'px';
-    els.dChan.style.strokeWidth = Math.round(riverW * 0.80) + 'px';
-    els.dWater.style.strokeWidth = Math.round(riverW * 0.54) + 'px';
-    els.dCrest.style.strokeWidth = '3px';           // thin hairline wave glints
+    MZ.riverW = riverW;
     els.boat.style.width = Math.round(riverW * 0.80) + 'px';
     gsap.set(els.boat, { xPercent: -50, yPercent: -50 });   // placeBoat drives the box CENTER
     placeBoat();
+    if (MZ.riverRebuild) MZ.riverRebuild();
   }
 
   /* letters resting setters (resize-safe) */
