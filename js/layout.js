@@ -16,8 +16,22 @@ window.MZ = (function () {
       ['Custom', 'Software', 'Development'],
     ],
     oww: ['Our', 'way', 'of', 'work'],
+    works: ['Selected', 'Works'],
+    projects: [
+      { name: 'Nimbus', tag: 'SaaS analytics platform', tags: 'Product · WebGL charts · Design system', g: 'g1', init: 'N' },
+      { name: 'Orbita', tag: 'Headless commerce storefront', tags: 'Commerce · Storefront · AEO', g: 'g2', init: 'O' },
+      { name: 'Kite', tag: 'AI travel copilot', tags: 'AI · Integrations · iOS · Android', g: 'g3', init: 'K' },
+    ],
+    stats: [
+      { n: 120, suf: '+', cap: 'Projects shipped' },
+      { n: 40, suf: '+', cap: 'Brands served' },
+      { n: 98, suf: '%', cap: 'On-time delivery' },
+    ],
+    cta1: ['Have', 'an', 'idea?'],
+    cta2: ["Let's", 'make', 'it', 'live.'],
+    foot: '© MZHX Studio — slow-grilled w/ intent · Dribbble · GitHub · X',
   };
-  const MAXSTEP = 14;      // resting steps after intro: intro=0 ... tester=13 end
+  const MAXSTEP = 19;      // resting steps after intro: 0..7 services, 8 grill, 9 ows, 10..14 flow, 15..17 works, 18 stats, 19 finale
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -48,12 +62,14 @@ window.MZ = (function () {
     els.tester     = document.querySelector('#testerBox');
     els.ows        = document.querySelector('#ows');
     els.owsInner   = document.querySelector('#owsText');
+    els.nextLayer  = document.querySelector('#nextLayer');
     els.hint       = document.querySelector('#scrollHint');
 
     // re-parent: logo + full-width section layer live at viewport scope
     els.app.appendChild(els.logoBox);          // out of leftPanel -> whole viewport
     els.fullLayer.appendChild(els.ows);        // justifyCenter on full width
     els.fullLayer.appendChild(els.flowLayer);
+    els.fullLayer.appendChild(els.nextLayer);  // works / stats / finale sections
     els.app.appendChild(els.fullLayer);        // out of rightPanel -> whole viewport
 
     const NS = 'http://www.w3.org/2000/svg';
@@ -105,6 +121,116 @@ window.MZ = (function () {
       els.owsInner.appendChild(w);
     });
     els.owsWords = Array.from(els.owsInner.querySelectorAll('.wi'));
+
+    // ---------- works section ----------
+    els.worksTitle = document.createElement('div');
+    els.worksTitle.className = 'posbase';
+    els.worksTitle.id = 'worksTitle';
+    const wtC = document.createElement('span');
+    wtC.className = 'bcenter';
+    els.worksText = document.createElement('h2');
+    els.worksText.id = 'worksText';
+    data.works.forEach((t) => {
+      const w = document.createElement('span'); w.className = 'w';
+      const wi = document.createElement('span'); wi.className = 'wi';
+      wi.textContent = t;
+      w.appendChild(wi);
+      els.worksText.appendChild(w);
+    });
+    wtC.appendChild(els.worksText);
+    els.worksTitle.appendChild(wtC);
+    els.nextLayer.appendChild(els.worksTitle);
+    els.worksWords = Array.from(els.worksText.querySelectorAll('.wi'));
+
+    // project cards
+    els.projs = [];
+    data.projects.forEach((p) => {
+      const el = document.createElement('div');
+      el.className = 'proj';
+      el.innerHTML =
+        '<div class="mock"><div class="tb"><i></i><i></i><i></i></div>' +
+        `<div class="canvas ${p.g}"><span class="brick b1"></span><span class="brick b2"></span>` +
+        '<span class="brick b3"></span><span class="brick b4"></span><span class="brick b5"></span>' +
+        '<span class="wm"></span></div></div>' +
+        '<div class="cap"><strong></strong><em></em><div class="tags"></div></div>';
+      el.querySelector('strong').textContent = p.name;
+      el.querySelector('em').textContent = p.tag;
+      el.querySelector('.tags').textContent = p.tags;
+      el.querySelector('.wm').textContent = p.init;
+      els.nextLayer.appendChild(el);
+      els.projs.push({ el, wm: el.querySelector('.wm') });
+    });
+
+    // giant index numbers
+    els.idxNums = ['01', '02', '03'].map((t) => {
+      const d = document.createElement('div');
+      d.className = 'posbase idxn';
+      const c = document.createElement('span'); c.className = 'bcenter'; c.textContent = t;
+      d.appendChild(c);
+      els.nextLayer.appendChild(d);
+      return d;
+    });
+
+    // ---------- stats ----------
+    els.stats = data.stats.map(() => {
+      const a = document.createElement('div');
+      a.className = 'stat posbase';
+      const c = document.createElement('span'); c.className = 'bcenter';
+      const w = document.createElement('span'); w.className = 'w';
+      const wi = document.createElement('span'); wi.className = 'wi';
+      const n = document.createElement('b'); n.textContent = '0';
+      const sfx = document.createElement('i'); sfx.className = 'suf';
+      wi.appendChild(n); wi.appendChild(sfx); w.appendChild(wi);
+      const cap = document.createElement('span'); cap.className = 'stCap';
+      c.appendChild(w); c.appendChild(cap); a.appendChild(c);
+      els.nextLayer.appendChild(a);
+      return { el: a, wi, n, suf: sfx, cap };
+    });
+
+    els.statOver = document.createElement('div');
+    els.statOver.className = 'posbase';
+    els.statOver.id = 'statOver';
+    const ovC = document.createElement('span'); ovC.className = 'bcenter';
+    const ovS = document.createElement('span'); ovS.textContent = 'By the numbers';
+    ovC.appendChild(ovS); els.statOver.appendChild(ovC);
+    els.nextLayer.appendChild(els.statOver);
+
+    // ---------- finale ----------
+    const buildCta = (id, words) => {
+      const a = document.createElement('div');
+      a.className = 'posbase'; a.id = id;
+      const c = document.createElement('span'); c.className = 'bcenter';
+      const h = document.createElement('h2'); h.id = id + 'Text';
+      words.forEach((t) => {
+        const w = document.createElement('span'); w.className = 'w';
+        const wi = document.createElement('span'); wi.className = 'wi';
+        wi.textContent = t;
+        w.appendChild(wi); h.appendChild(w);
+      });
+      c.appendChild(h); a.appendChild(c);
+      els.nextLayer.appendChild(a);
+      return { a, h };
+    };
+    const c1 = buildCta('cta1', data.cta1);
+    const c2 = buildCta('cta2', data.cta2);
+    els.cta1 = c1.a; els.cta1Inner = c1.h;
+    els.cta2 = c2.a; els.cta2Inner = c2.h;
+    els.cta1Words = Array.from(els.cta1Inner.querySelectorAll('.wi'));
+    els.cta2Words = Array.from(els.cta2Inner.querySelectorAll('.wi'));
+
+    els.pill = document.createElement('div');
+    els.pill.className = 'posbase'; els.pill.id = 'mailPill';
+    const pC = document.createElement('span'); pC.className = 'bcenter';
+    const pS = document.createElement('span'); pS.textContent = 'hello@mzhx.studio';
+    pC.appendChild(pS); els.pill.appendChild(pC);
+    els.nextLayer.appendChild(els.pill);
+
+    els.footLine = document.createElement('div');
+    els.footLine.className = 'posbase'; els.footLine.id = 'footLine';
+    const fC = document.createElement('span'); fC.className = 'bcenter';
+    const fS = document.createElement('span'); fS.textContent = data.foot;
+    fC.appendChild(fS); els.footLine.appendChild(fC);
+    els.nextLayer.appendChild(els.footLine);
 
     // box labels
     els.planLbl   = els.plan.querySelector('.bli');
@@ -271,6 +397,54 @@ window.MZ = (function () {
   const owsCenter = () => ({ x: S.vw * 0.5, y: S.vh * 0.5 });
   const owsTop = () => ({ x: S.vw * 0.5, y: S.vh * 0.115 });
 
+  /* ---------------- next sections ---------------- */
+
+  /* selected works: title top, card center-left, giant index right */
+  function worksGeom() {
+    const cC = { x: S.vw * 0.42, y: S.vh * 0.545 };          // card anchor (centered incl. caption)
+    const cw = Math.min(S.vw * 0.44, S.vh * 0.52);           // card width
+    return {
+      tC: { x: S.vw * 0.5, y: S.vh * 0.15 },                 // title center
+      cC, cw,
+      ch: cw * 0.62,                                          // mockup height
+      nC: { x: S.vw * 0.805, y: S.vh * 0.53 },               // index number center
+    };
+  }
+
+  /* stats row */
+  function statsGeom() {
+    const ol = { x: S.vw * 0.5, y: S.vh * 0.17 };
+    return {
+      ol,
+      xs: [S.vw * 0.26, S.vw * 0.5, S.vw * 0.74],
+      y: S.vh * 0.44,
+    };
+  }
+
+  /* finale: big centered MZHX + CTA lines + contact pill */
+  function finaleLayout() {
+    const s = clamp((S.vw * 0.30) / els.wordSpan, 0.12, 0.6);
+    const startX = S.vw / 2 - (s * els.wordSpan) / 2;
+    const y = S.vh * 0.40;
+    return {
+      s, y,
+      pos(i) {
+        let cum = 0;
+        for (let j = 0; j < i; j++) cum += els.letterW[j] + els.letterGap;
+        return { x: startX + s * (cum + els.letterW[i] / 2) };
+      },
+    };
+  }
+
+  function ctaGeom() {
+    return {
+      l1: { x: S.vw * 0.5, y: S.vh * 0.565 },
+      l2: { x: S.vw * 0.5, y: S.vh * 0.648 },
+      pill: { x: S.vw * 0.5, y: S.vh * 0.745 },
+      foot: S.vh * 0.925,
+    };
+  }
+
   /* ---------------- arrows ---------------- */
   function placeArrow(svg, shaft, head, x1, y1, x2, y2, bow, tip) {
     const dx = x2 - x1, dy = y2 - y1;
@@ -350,14 +524,65 @@ window.MZ = (function () {
     gsap.set(els.flowGroup, { x: 0, y: 0, scale: 1 });
     arrow1Geom();
     arrow2Geom();
+
+    // ---------- next sections (works / stats / finale) ----------
+    const wg = worksGeom(), stg = statsGeom();
+    els.projs.forEach((pr) => {
+      const el = pr.el;
+      el.style.width = wg.cw + 'px';
+      el.querySelector('.mock').style.height = wg.ch + 'px';
+      pr.wm.style.fontSize = Math.round(wg.cw * 0.52) + 'px';
+      const cap = el.querySelector('.cap');
+      cap.querySelector('strong').style.fontSize = Math.max(15, wg.cw * 0.052) + 'px';
+      cap.querySelector('em').style.fontSize = Math.max(11.5, wg.cw * 0.034) + 'px';
+      cap.querySelector('.tags').style.fontSize = Math.max(10.5, wg.cw * 0.031) + 'px';
+      gsap.set(el, { xPercent: -50, yPercent: -50, x: wg.cC.x, y: wg.cC.y, rotation: 0, scale: 1, autoAlpha: 0 });
+    });
+    gsap.set(els.worksTitle, { xPercent: -50, yPercent: -50, x: wg.tC.x, y: wg.tC.y, scale: 1, autoAlpha: 0 });
+    els.worksText.style.fontSize = Math.min(S.vw * 0.040, S.vh * 0.075) + 'px';
+    els.worksWords.forEach((w) => gsap.set(w, { yPercent: 115 }));
+    const nFont = Math.min(S.vw * 0.17, S.vh * 0.30);
+    els.idxNums.forEach((n) => {
+      n.querySelector('span').style.fontSize = nFont + 'px';
+      gsap.set(n, { xPercent: -50, yPercent: -50, x: wg.nC.x, y: wg.nC.y, autoAlpha: 0 });
+    });
+    const stFont = Math.min(S.vw * 0.062, S.vh * 0.14);
+    els.stats.forEach((st, k) => {
+      st.n.style.fontSize = stFont + 'px';
+      st.cap.style.fontSize = Math.min(S.vw * 0.015, 16) + 'px';
+      gsap.set(st.el, { xPercent: -50, yPercent: -50, x: stg.xs[k], y: stg.y, autoAlpha: 0 });
+      gsap.set(st.wi, { yPercent: 130 });
+      st.n.textContent = '0';
+    });
+    gsap.set(els.statOver, { xPercent: -50, yPercent: -50, x: stg.ol.x, y: stg.ol.y, autoAlpha: 0 });
+    els.statOver.querySelector('span').style.fontSize = Math.min(S.vw * 0.0135, 15.5) + 'px';
+    const ctg = ctaGeom();
+    els.cta1Inner.style.fontSize = fitText(els.cta1Inner, Math.min(S.vw * 0.046, S.vh * 0.092), S.vw * 0.62) + 'px';
+    els.cta2Inner.style.fontSize = fitText(els.cta2Inner, Math.min(S.vw * 0.046, S.vh * 0.092), S.vw * 0.66) + 'px';
+    [[els.cta1, ctg.l1, els.cta1Words], [els.cta2, ctg.l2, els.cta2Words]].forEach(([a, pos, words]) => {
+      gsap.set(a, { xPercent: -50, yPercent: -50, x: pos.x, y: pos.y, autoAlpha: 0 });
+      gsap.set(words, { yPercent: 115 });
+    });
+    els.pill.querySelector('span').style.fontSize = Math.min(S.vw * 0.017, 21) + 'px';
+    gsap.set(els.pill, { xPercent: -50, yPercent: -50, x: ctg.pill.x, y: ctg.pill.y, scale: 1, autoAlpha: 0 });
+    els.footLine.querySelector('span').style.fontSize = Math.min(13.5, S.vw * 0.011) + 'px';
+    gsap.set(els.footLine, { xPercent: -50, yPercent: -50, x: S.vw / 2, y: ctg.foot, autoAlpha: 0 });
   }
 
   /* letters resting setters (resize-safe) */
-  function setLetters(mode) {   // 'compact' | 'header' | 'stacked'
+  function setLetters(mode) {   // 'compact' | 'header' | 'finale' | 'stacked'
     if (mode === 'stacked') {
       els.letters.forEach((el, i) => {
         const p = stackedPos(i);
         gsap.set(el, { x: p.x, y: p.y, scale: 1 });
+      });
+      return;
+    }
+    if (mode === 'finale') {
+      const lay = finaleLayout();
+      els.letters.forEach((el, i) => {
+        const p = lay.pos(i);
+        gsap.set(el, { x: p.x, y: lay.y, scale: lay.s });
       });
       return;
     }
@@ -415,6 +640,7 @@ window.MZ = (function () {
     topSlots, midPos, boxS, planP, p1, p2,
     encapBounds, groupGeom, groupPt, execGeom, testerGeom,
     owsCenter, owsTop, arrow1Geom, arrow2Geom,
+    worksGeom, statsGeom, finaleLayout, ctaGeom,
     setLetters, setServiceResting,
     makeLetterCycle, fitText, clamp,
   };

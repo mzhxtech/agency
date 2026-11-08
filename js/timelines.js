@@ -220,6 +220,132 @@ window.MZT = (function () {
   }
 
   /* ---------- lazy cache ---------- */
+  // 14 -> 15: tester contracts, flow fades, "Selected Works" + card 01 arrive
+  function buildWorksIn() {
+    const tl = gsap.timeline({ paused: true });
+    const S = MZ.S;
+    const wg = MZ.worksGeom();
+    const tg = MZ.testerGeom();
+
+    tl.to(MZ.els.tester, { width: tg.w0, height: tg.h0, autoAlpha: 0, duration: 0.6, ease: 'power2.in' }, 0);
+    tl.to([MZ.els.plan, MZ.els.design, MZ.els.exec, MZ.els.encap, MZ.els.arrow2], { autoAlpha: 0, duration: 0.45 }, 0.05);
+    tl.to(MZ.els.ows, { scale: 0.88, autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 0.1);
+    MZ.els.owsWords.forEach((w, i) => {
+      tl.to(w, { yPercent: -140, duration: 0.5, ease: 'power3.in' }, 0.12 + i * 0.05);
+    });
+
+    // title drops in word by word
+    tl.set(MZ.els.worksTitle, { x: wg.tC.x, y: wg.tC.y, scale: 1, autoAlpha: 1, immediateRender: false }, 0.62);
+    MZ.els.worksWords.forEach((w, i) => {
+      tl.fromTo(w,
+        { yPercent: -135 },
+        { yPercent: 0, duration: i === 0 ? 0.85 : 0.6, ease: i === 0 ? 'bounce.out' : 'power4.out', immediateRender: false },
+        0.68 + i * 0.16);
+    });
+
+    // card 01 slides in, index number follows
+    tl.fromTo(MZ.els.projs[0].el,
+      { x: wg.cC.x + S.vw * 0.30, y: wg.cC.y + S.vh * 0.10, scale: 0.92, rotation: 2, autoAlpha: 0 },
+      { x: wg.cC.x, y: wg.cC.y, scale: 1, rotation: 0, autoAlpha: 1, duration: 1.0, ease: 'power3.out', immediateRender: false }, 0.75);
+    tl.fromTo(MZ.els.idxNums[0],
+      { x: wg.nC.x + S.vw * 0.14, y: wg.nC.y, autoAlpha: 0 },
+      { x: wg.nC.x, autoAlpha: 1, duration: 0.9, ease: 'power3.out', immediateRender: false }, 0.95);
+    return tl;
+  }
+
+  // works step k -> k+1 (k = 1..2): card k-1 flies out left, card k in from right
+  function buildWorksNext(k) {
+    const tl = gsap.timeline({ paused: true });
+    const S = MZ.S;
+    const wg = MZ.worksGeom();
+
+    tl.to(MZ.els.projs[k - 1].el,
+      { x: wg.cC.x - S.vw * 0.72, rotation: -3.5, autoAlpha: 0, duration: 0.8, ease: 'power3.in' }, 0);
+    tl.fromTo(MZ.els.projs[k].el,
+      { x: wg.cC.x + S.vw * 0.72, y: wg.cC.y, scale: 1.04, rotation: 3.5, autoAlpha: 0 },
+      { x: wg.cC.x, y: wg.cC.y, scale: 1, rotation: 0, autoAlpha: 1, duration: 0.95, ease: 'power3.out', immediateRender: false }, 0.42);
+    tl.to(MZ.els.idxNums[k - 1],
+      { x: wg.nC.x - S.vw * 0.22, autoAlpha: 0, duration: 0.55, ease: 'power2.in' }, 0.08);
+    tl.fromTo(MZ.els.idxNums[k],
+      { x: wg.nC.x + S.vw * 0.22, y: wg.nC.y, autoAlpha: 0 },
+      { x: wg.nC.x, autoAlpha: 1, duration: 0.8, ease: 'power3.out', immediateRender: false }, 0.5);
+    return tl;
+  }
+
+  // 17 -> 18: works exit, "By the numbers" — stats punch in with count-up
+  function buildStatsIn() {
+    const tl = gsap.timeline({ paused: true });
+    const S = MZ.S;
+    const wg = MZ.worksGeom();
+    const sg = MZ.statsGeom();
+
+    tl.to(MZ.els.projs[2].el,
+      { x: wg.cC.x - S.vw * 0.72, rotation: -4, autoAlpha: 0, duration: 0.75, ease: 'power3.in' }, 0);
+    tl.to(MZ.els.idxNums[2],
+      { x: wg.nC.x + S.vw * 0.22, autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 0);
+    MZ.els.worksWords.forEach((w, i) => {
+      tl.to(w, { yPercent: -140, duration: 0.5, ease: 'power3.in' }, 0.1 + i * 0.05);
+    });
+    tl.to(MZ.els.worksTitle, { autoAlpha: 0, duration: 0.3 }, 0.5);
+
+    tl.set(MZ.els.statOver, { x: sg.ol.x, y: sg.ol.y, immediateRender: false }, 0.4);
+    tl.fromTo(MZ.els.statOver, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, immediateRender: false }, 0.4);
+
+    MZ.els.stats.forEach((st, k) => {
+      const at = 0.55 + k * 0.18;
+      tl.set(st.el, { x: sg.xs[k], y: sg.y, immediateRender: false }, at);
+      tl.fromTo(st.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, immediateRender: false }, at);
+      tl.fromTo(st.wi, { yPercent: 130 }, { yPercent: 0, duration: 0.7, ease: 'power4.out', immediateRender: false }, at);
+      const counter = { v: 0 };
+      tl.fromTo(counter, { v: 0 },
+        {
+          v: MZ.data.stats[k].n, duration: 1.15, ease: 'power2.out', immediateRender: false,
+          onUpdate: () => { st.n.textContent = String(Math.round(counter.v)); },
+        }, at + 0.05);
+      tl.fromTo(st.cap, { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.5, immediateRender: false }, at + 0.42);
+    });
+    return tl;
+  }
+
+  // 18 -> 19: finale — MZHX reassembles center, CTA, contact pill, footer
+  function buildFinale() {
+    const tl = gsap.timeline({ paused: true });
+    const S = MZ.S;
+    const sg = MZ.statsGeom();
+    const cg = MZ.ctaGeom();
+    const fl = MZ.finaleLayout();
+
+    MZ.els.stats.forEach((st, k) => {
+      tl.to(st.el, { y: sg.y - S.vh * 0.09, autoAlpha: 0, duration: 0.55, ease: 'power2.in' }, 0 + k * 0.05);
+    });
+    tl.to(MZ.els.statOver, { autoAlpha: 0, duration: 0.4 }, 0.1);
+
+    // hero letters fly from the header into the big centered wordmark
+    MZ.els.letters.forEach((el, i) => {
+      tl.to(el, { x: fl.pos(i).x, y: fl.y, scale: fl.s, duration: 1.05, ease: 'power4.inOut' }, 0.3 + i * 0.045);
+    });
+
+    tl.set(MZ.els.cta1, { x: cg.l1.x, y: cg.l1.y, immediateRender: false }, 1.15);
+    tl.fromTo(MZ.els.cta1, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2, immediateRender: false }, 1.15);
+    MZ.els.cta1Words.forEach((w, i) => {
+      tl.fromTo(w, { yPercent: 120 }, { yPercent: 0, duration: 0.65, ease: 'power4.out', immediateRender: false }, 1.25 + i * 0.1);
+    });
+    tl.set(MZ.els.cta2, { x: cg.l2.x, y: cg.l2.y, immediateRender: false }, 1.5);
+    tl.fromTo(MZ.els.cta2, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2, immediateRender: false }, 1.5);
+    MZ.els.cta2Words.forEach((w, i) => {
+      tl.fromTo(w, { yPercent: 120 }, { yPercent: 0, duration: 0.65, ease: 'power4.out', immediateRender: false }, 1.6 + i * 0.09);
+    });
+
+    tl.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, immediateRender: false }, 1.95);
+    tl.fromTo(MZ.els.pill,
+      { autoAlpha: 0, y: cg.pill.y + 30, scale: 0.92 },
+      { y: cg.pill.y, scale: 1, autoAlpha: 1, duration: 0.7, ease: 'back.out(1.5)', immediateRender: false }, 1.95);
+
+    tl.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, immediateRender: false }, 2.15);
+    tl.fromTo(MZ.els.footLine, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, immediateRender: false }, 2.15);
+    return tl;
+  }
+
   function getTrans(i) {
     if (!cache[i]) {
       cache[i] = (i <= 5) ? buildSvcAdvance(i)
@@ -230,7 +356,12 @@ window.MZT = (function () {
         : i === 10 ? buildPlanDesign()
         : i === 11 ? buildEncap()
         : i === 12 ? buildExec()
-        : buildTester();
+        : i === 13 ? buildTester()
+        : i === 14 ? buildWorksIn()
+        : i === 15 ? buildWorksNext(1)
+        : i === 16 ? buildWorksNext(2)
+        : i === 17 ? buildStatsIn()
+        : buildFinale();
     }
     return cache[i];
   }

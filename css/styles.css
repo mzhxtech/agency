@@ -328,3 +328,135 @@ html, body {
   25%  { opacity: 1; }
   100% { transform: translateX(25px); opacity: 0; }
 }
+
+/* ============================================================
+   NEXT SECTIONS — Selected Works / By the numbers / Finale
+   (lives inside #fullLayer, viewport scope)
+   ============================================================ */
+#nextLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* "Selected Works" title */
+#worksTitle {
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
+#worksText { font-weight: 700; letter-spacing: -0.03em; color: #fff; }
+
+/* project cards: browser-window mockup + caption */
+.proj {
+  position: absolute; left: 0; top: 0;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
+.mock {
+  border: 1.5px solid rgba(255,255,255,.30);
+  border-radius: 20px;
+  background: #101015;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6), inset 0 0 46px rgba(255,255,255,.05);
+}
+.mock .tb {
+  display: flex;
+  gap: 7px;
+  padding: 13px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.mock .tb i {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.32);
+}
+.mock .canvas { position: relative; flex: 1; overflow: hidden; }
+.canvas.g1 { background: linear-gradient(135deg, #0ea5e9, #6366f1 55%, #a855f7); }
+.canvas.g2 { background: linear-gradient(135deg, #f59e0b, #ec4899 58%, #8b5cf6); }
+.canvas.g3 { background: linear-gradient(135deg, #10b981, #06b6d4 55%, #3b82f6); }
+.canvas .brick { position: absolute; background: rgba(255,255,255,.20); border-radius: 8px; }
+.canvas .b1 { left: 6%;  top: 10%; width: 36%; height: 11%; background: rgba(255,255,255,.32); }
+.canvas .b2 { left: 6%;  top: 28%; width: 56%; height: 7%; }
+.canvas .b3 { left: 6%;  top: 41%; width: 42%; height: 7%; opacity: .55; }
+.canvas .b4 { right: 6%; top: 10%; width: 17%; height: 17%; border-radius: 50%; background: rgba(255,255,255,.30); }
+.canvas .b5 { right: 6%; top: 48%; width: 17%; height: 34%; background: rgba(255,255,255,.12); }
+.canvas .wm {
+  position: absolute; right: 3%; bottom: -14%;
+  font-weight: 800; line-height: 1;
+  color: rgba(255,255,255,.16);
+  letter-spacing: -0.04em;
+}
+.cap { padding: 18px 8px 0; display: flex; flex-direction: column; gap: 4px; text-align: left; }
+.cap strong { color: #fff; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+.cap em { font-style: normal; color: #9a9aa4; font-weight: 500; line-height: 1.3; }
+.cap .tags { color: #6f6f7a; letter-spacing: .045em; }
+
+/* giant outlined index numbers */
+.idxn {
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
+.idxn .bcenter span {
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255,255,255,.34);
+}
+
+/* stats */
+.stat { opacity: 0; visibility: hidden; will-change: transform; }
+#statOver { opacity: 0; visibility: hidden; will-change: transform; }
+#statOver .bcenter span {
+  font-weight: 500;
+  letter-spacing: .34em;
+  text-transform: uppercase;
+  color: #6f6f7a;
+}
+.stat b { font-weight: 700; letter-spacing: -0.02em; color: #fff; }
+.stat .suf { font-style: normal; font-weight: 700; color: #c9c9d4; margin-left: 3px; }
+.stat .stCap { display: block; color: #8e8e99; font-weight: 500; margin-top: 0.5em; letter-spacing: .02em; }
+
+/* shared masked-word behavior for the new text sections */
+#worksText .w, #cta1Text .w, #cta2Text .w, .stat .w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  line-height: 1.15;
+}
+#worksText .w + .w, #cta1Text .w + .w, #cta2Text .w + .w { margin-left: 0.30em; }
+#worksText .wi, #cta1Text .wi, #cta2Text .wi, .stat .wi {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* finale CTA */
+#cta1, #cta2 { opacity: 0; visibility: hidden; will-change: transform; }
+#cta1Text, #cta2Text { font-weight: 700; letter-spacing: -0.02em; color: #fff; }
+#cta2Text { color: #d9d9e3; }
+
+/* email pill */
+#mailPill { opacity: 0; visibility: hidden; will-change: transform; }
+#mailPill .bcenter span {
+  display: inline-block;
+  padding: 0.85em 1.9em;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px;
+  color: #fff;
+  letter-spacing: .02em;
+  background: rgba(255,255,255,.05);
+  box-shadow: 0 10px 34px rgba(0,0,0,.45);
+}
+
+/* footer line */
+#footLine { opacity: 0; visibility: hidden; will-change: transform; }
+#footLine .bcenter span {
+  color: #6b6b75;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
