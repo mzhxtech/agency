@@ -298,8 +298,8 @@ window.MZ = (function () {
   }
 
   function compactLayout() {
-    const s = clamp((S.vw * 0.23) / els.wordSpan, 0.08, 0.55);
-    const startX = S.vw * 0.045;
+    const s = clamp((S.vw * 0.40) / els.wordSpan, 0.08, 1.0);
+    const startX = S.vw * 0.02;
     const y = S.lh * 0.5;
     return {
       s, y,
