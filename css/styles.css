@@ -471,6 +471,7 @@ html, body {
 .canvas.g1 { background: linear-gradient(135deg, #0ea5e9, #6366f1 55%, #a855f7); }
 .canvas.g2 { background: linear-gradient(135deg, #f59e0b, #ec4899 58%, #8b5cf6); }
 .canvas.g3 { background: linear-gradient(135deg, #10b981, #06b6d4 55%, #3b82f6); }
+.canvas.g4 { background: linear-gradient(135deg, #2dd4bf, #6366f1 52%, #f43f5e 92%); }
 .canvas .brick { position: absolute; background: rgba(255,255,255,.20); border-radius: 8px; }
 .canvas .b1 { left: 6%;  top: 10%; width: 36%; height: 11%; background: rgba(255,255,255,.32); }
 .canvas .b2 { left: 6%;  top: 28%; width: 56%; height: 7%; }

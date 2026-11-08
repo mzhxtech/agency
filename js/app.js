@@ -163,7 +163,7 @@
   function applyResting() {
     const t = current;
     const S = MZ.S;
-    MZ.setLetters(t >= 21 ? 'finale' : t >= 9 ? 'header' : 'compact');
+    MZ.setLetters(t >= 22 ? 'finale' : t >= 9 ? 'header' : 'compact');
     MZ.els.logoBox.classList.toggle('hero-live', t >= 0);
 
     if (t <= 7) {
@@ -291,13 +291,13 @@
       gsap.set(MZ.els.a6head, { autoAlpha: 0, x: 0, y: 9 });
     }
 
-    // ---------- selected works (steps 17..19) ----------
+    // ---------- selected works (steps 17..20, four projects) ----------
     const wg = MZ.worksGeom();
     MZ.els.projs.forEach((pr, k) => {
       const active = t === 17 + k;
       gsap.set(pr.el, { x: wg.cC.x, y: wg.cC.y, rotation: 0, scale: 1, autoAlpha: active ? 1 : 0 });
     });
-    const worksOn = t >= 17 && t <= 19;
+    const worksOn = t >= 17 && t <= 20;
     gsap.set(MZ.els.worksTitle, { x: wg.tC.x, y: wg.tC.y, scale: 1, autoAlpha: worksOn ? 1 : 0 });
     gsap.set(MZ.els.worksWords, { yPercent: worksOn ? 0 : 115 });
     MZ.els.idxNums.forEach((n, k) => {
@@ -305,25 +305,25 @@
       gsap.set(n, { x: wg.nC.x, y: wg.nC.y, autoAlpha: active ? 1 : 0 });
     });
 
-    // ---------- by the numbers (step 20) ----------
+    // ---------- by the numbers (step 21) ----------
     const sg = MZ.statsGeom();
-    gsap.set(MZ.els.statOver, { x: sg.ol.x, y: sg.ol.y, autoAlpha: t >= 20 && t <= 20 ? 1 : 0 });
+    gsap.set(MZ.els.statOver, { x: sg.ol.x, y: sg.ol.y, autoAlpha: t >= 21 && t <= 21 ? 1 : 0 });
     MZ.els.stats.forEach((st, k) => {
-      const active = t >= 20 && t <= 20;
+      const active = t >= 21 && t <= 21;
       gsap.set(st.el, { x: sg.xs[k], y: sg.y, autoAlpha: active ? 1 : 0 });
       gsap.set(st.wi, { yPercent: active ? 0 : 130 });
       st.n.textContent = active ? String(MZ.data.stats[k].n) : '0';
       gsap.set(st.cap, { y: 0, autoAlpha: active ? 1 : 0 });
     });
 
-    // ---------- finale (step 21) ----------
+    // ---------- finale (step 22) ----------
     const cg = MZ.ctaGeom();
-    gsap.set(MZ.els.cta1, { x: cg.l1.x, y: cg.l1.y, autoAlpha: t >= 21 ? 1 : 0 });
-    gsap.set(MZ.els.cta2, { x: cg.l2.x, y: cg.l2.y, autoAlpha: t >= 21 ? 1 : 0 });
-    gsap.set(MZ.els.cta1Words, { yPercent: t >= 21 ? 0 : 120 });
-    gsap.set(MZ.els.cta2Words, { yPercent: t >= 21 ? 0 : 120 });
-    gsap.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, scale: 1, autoAlpha: t >= 21 ? 1 : 0 });
-    gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 21 ? 1 : 0 });
+    gsap.set(MZ.els.cta1, { x: cg.l1.x, y: cg.l1.y, autoAlpha: t >= 22 ? 1 : 0 });
+    gsap.set(MZ.els.cta2, { x: cg.l2.x, y: cg.l2.y, autoAlpha: t >= 22 ? 1 : 0 });
+    gsap.set(MZ.els.cta1Words, { yPercent: t >= 22 ? 0 : 120 });
+    gsap.set(MZ.els.cta2Words, { yPercent: t >= 22 ? 0 : 120 });
+    gsap.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, scale: 1, autoAlpha: t >= 22 ? 1 : 0 });
+    gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 22 ? 1 : 0 });
 
     syncIdle(t);
   }

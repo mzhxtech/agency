@@ -295,6 +295,30 @@ window.MZT = (function () {
     return tl;
   }
 
+  /* a landing card's internals assemble: browser dots pop, canvas bricks slide
+     up into place, the watermark drifts in, caption lines rise */
+  function stageCardInner(tl, pr, at) {
+    pr.el.querySelectorAll('.tb i').forEach((d, i) => {
+      tl.fromTo(d, { scale: 0 }, { scale: 1, duration: 0.4, ease: 'back.out(2.2)', immediateRender: false }, at + 0.28 + i * 0.09);
+    });
+    pr.el.querySelectorAll('.brick').forEach((b, i) => {
+      tl.fromTo(b,
+        { yPercent: 130, autoAlpha: 0 },
+        { yPercent: 0, autoAlpha: 1, duration: 0.55, ease: 'power3.out', immediateRender: false },
+        at + 0.42 + i * 0.09);
+    });
+    tl.fromTo(pr.wm,
+      { x: 46, autoAlpha: 0 },
+      { x: 0, autoAlpha: 1, duration: 0.6, ease: 'power3.out', immediateRender: false }, at + 0.72);
+    const cap = pr.el.querySelector('.cap');
+    ['strong', 'em', '.tags'].forEach((sel, i) => {
+      tl.fromTo(cap.querySelector(sel),
+        { y: 16, autoAlpha: 0 },
+        { y: 0, autoAlpha: 1, duration: 0.5, ease: 'power3.out', immediateRender: false },
+        at + 0.92 + i * 0.13);
+    });
+  }
+
   /* ---------- lazy cache ---------- */
   // 15 -> 16: tester rail pinches in and its caption lifts off while the
   // improving loop spins up: arrow to the Feedback cluster (avatars + caption),
@@ -382,17 +406,19 @@ window.MZT = (function () {
         0.68 + i * 0.16);
     });
 
-    // card 01 slides in, index number follows
+    // card 01 slides in, index number follows, then its internals assemble
     tl.fromTo(MZ.els.projs[0].el,
       { x: wg.cC.x + S.vw * 0.30, y: wg.cC.y + S.vh * 0.10, scale: 0.92, rotation: 2, autoAlpha: 0 },
       { x: wg.cC.x, y: wg.cC.y, scale: 1, rotation: 0, autoAlpha: 1, duration: 1.0, ease: 'power3.out', immediateRender: false }, 0.75);
     tl.fromTo(MZ.els.idxNums[0],
       { x: wg.nC.x + S.vw * 0.14, y: wg.nC.y, autoAlpha: 0 },
       { x: wg.nC.x, autoAlpha: 1, duration: 0.9, ease: 'power3.out', immediateRender: false }, 0.95);
+    stageCardInner(tl, MZ.els.projs[0], 0.75);
     return tl;
   }
 
-  // works step k -> k+1 (k = 1..2): card k-1 flies out left, card k in from right
+  // works step k -> k+1 (k = 1..3): card k-1 flies out left, card k in with its
+  // internals assembling as it lands
   function buildWorksNext(k) {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
@@ -408,19 +434,20 @@ window.MZT = (function () {
     tl.fromTo(MZ.els.idxNums[k],
       { x: wg.nC.x + S.vw * 0.22, y: wg.nC.y, autoAlpha: 0 },
       { x: wg.nC.x, autoAlpha: 1, duration: 0.8, ease: 'power3.out', immediateRender: false }, 0.5);
+    stageCardInner(tl, MZ.els.projs[k], 0.42);
     return tl;
   }
 
-  // 19 -> 20: works exit, "By the numbers" — stats punch in with count-up
+  // 20 -> 21: works exit, "By the numbers" — stats punch in with count-up
   function buildStatsIn() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
     const wg = MZ.worksGeom();
     const sg = MZ.statsGeom();
 
-    tl.to(MZ.els.projs[2].el,
+    tl.to(MZ.els.projs[3].el,
       { x: wg.cC.x - S.vw * 0.72, rotation: -4, autoAlpha: 0, duration: 0.75, ease: 'power3.in' }, 0);
-    tl.to(MZ.els.idxNums[2],
+    tl.to(MZ.els.idxNums[3],
       { x: wg.nC.x + S.vw * 0.22, autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 0);
     MZ.els.worksWords.forEach((w, i) => {
       tl.to(w, { yPercent: -140, duration: 0.5, ease: 'power3.in' }, 0.1 + i * 0.05);
@@ -446,7 +473,7 @@ window.MZT = (function () {
     return tl;
   }
 
-  // 20 -> 21: finale — MZHX reassembles center, CTA, contact pill, footer
+  // 21 -> 22: finale — MZHX reassembles center, CTA, contact pill, footer
   function buildFinale() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
@@ -501,7 +528,8 @@ window.MZT = (function () {
         : i === 16 ? buildWorksIn()
         : i === 17 ? buildWorksNext(1)
         : i === 18 ? buildWorksNext(2)
-        : i === 19 ? buildStatsIn()
+        : i === 19 ? buildWorksNext(3)
+        : i === 20 ? buildStatsIn()
         : buildFinale();
     }
     return cache[i];

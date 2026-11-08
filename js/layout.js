@@ -18,9 +18,10 @@ window.MZ = (function () {
     oww: ['Our', 'way', 'of', 'work'],
     works: ['Selected', 'Works'],
     projects: [
-      { name: 'Nimbus', tag: 'SaaS analytics platform', tags: 'Product · WebGL charts · Design system', g: 'g1', init: 'N' },
-      { name: 'Orbita', tag: 'Headless commerce storefront', tags: 'Commerce · Storefront · AEO', g: 'g2', init: 'O' },
-      { name: 'Kite', tag: 'AI travel copilot', tags: 'AI · Integrations · iOS · Android', g: 'g3', init: 'K' },
+      { name: 'Recall', tag: 'Your memory, encrypted', tags: 'Product · Encryption · Cross-platform', g: 'g1', init: 'R' },
+      { name: 'WhyBoard', tag: 'The AI storyteller for your data', tags: 'SaaS · AI · Analytics · SQL trail', g: 'g2', init: 'W' },
+      { name: 'RideShare', tag: 'Share the ride, split the fare', tags: 'Mobile · Maps · Ride sharing', g: 'g3', init: 'R' },
+      { name: 'Planisher', tag: 'Calm construction planning workspace', tags: 'Web app · Scheduling · Cost control', g: 'g4', init: 'P' },
     ],
     stats: [
       { n: 120, suf: '+', cap: 'Projects shipped' },
@@ -31,7 +32,7 @@ window.MZ = (function () {
     cta2: ["Let's", 'make', 'it', 'live.'],
     foot: '© MZHX Studio — slow-grilled w/ intent · Dribbble · GitHub · X',
   };
-  const MAXSTEP = 21;      // resting steps after intro: 0..7 services, 8 grill, 9 ows, 10..16 flow (15 publish, 16 feedback loop), 17..19 works, 20 stats, 21 finale
+  const MAXSTEP = 22;      // resting steps: 0..7 services, 8 grill, 9 ows, 10..16 flow (15 publish, 16 feedback loop), 17..20 works (4 projects), 21 stats, 22 finale
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -170,7 +171,7 @@ window.MZ = (function () {
     });
 
     // giant index numbers
-    els.idxNums = ['01', '02', '03'].map((t) => {
+    els.idxNums = ['01', '02', '03', '04'].map((t) => {
       const d = document.createElement('div');
       d.className = 'posbase idxn';
       const c = document.createElement('span'); c.className = 'bcenter'; c.textContent = t;
@@ -694,6 +695,10 @@ window.MZ = (function () {
       cap.querySelector('em').style.fontSize = Math.max(11.5, wg.cw * 0.034) + 'px';
       cap.querySelector('.tags').style.fontSize = Math.max(10.5, wg.cw * 0.031) + 'px';
       gsap.set(el, { xPercent: -50, yPercent: -50, x: wg.cC.x, y: wg.cC.y, rotation: 0, scale: 1, autoAlpha: 0 });
+      // internals rest in their SHOWN state; the builders' fromTos stage them
+      gsap.set(el.querySelectorAll('.tb i'), { scale: 1 });
+      gsap.set(el.querySelectorAll('.brick'), { yPercent: 0 });
+      gsap.set(pr.wm, { x: 0 });
     });
     gsap.set(els.worksTitle, { xPercent: -50, yPercent: -50, x: wg.tC.x, y: wg.tC.y, scale: 1, autoAlpha: 0 });
     els.worksText.style.fontSize = Math.min(S.vw * 0.040, S.vh * 0.075) + 'px';
