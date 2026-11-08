@@ -502,28 +502,127 @@ html, body {
   -webkit-text-stroke: 1.5px rgba(255,255,255,.34);
 }
 
-/* stats */
-.stat { opacity: 0; visibility: hidden; will-change: transform; }
-#statOver { opacity: 0; visibility: hidden; will-change: transform; }
-#statOver .bcenter span {
-  font-weight: 500;
-  letter-spacing: .34em;
+/* TRUST THE PROCESS */
+#trust1, #trust2, #trust3 { opacity: 0; visibility: hidden; will-change: transform; }
+.trustW {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+  line-height: 1;
+}
+.trustThe {
+  font-weight: 600;
+  font-style: italic;
+  color: rgba(255,255,255,.42);
+}
+
+/* pledge slabs */
+#pledge1, #pledge2, #pledge3 { opacity: 0; visibility: hidden; will-change: transform; }
+.pledge {
+  border: 1.5px solid rgba(255,255,255,.30);
+  border-radius: 14px;
+  background: #101015;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 46px rgba(0,0,0,.5), inset 0 0 24px rgba(255,255,255,.04);
+}
+.pledge .pbl {
+  color: #ececf2;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+.pledge .pbl b {
+  font-weight: 700;
+  color: #fff;
+  margin-right: 0.35em;
+}
+
+/* FAQ grid */
+#faqCap { opacity: 0; visibility: hidden; will-change: transform; }
+#faqCap .bcenter span {
+  font-weight: 600;
+  letter-spacing: .46em;
   text-transform: uppercase;
   color: #6f6f7a;
 }
-.stat b { font-weight: 700; letter-spacing: -0.02em; color: #fff; }
-.stat .suf { font-style: normal; font-weight: 700; color: #c9c9d4; margin-left: 3px; }
-.stat .stCap { display: block; color: #8e8e99; font-weight: 500; margin-top: 0.5em; letter-spacing: .02em; }
+.faqRow {
+  position: absolute;
+  display: flex;
+  gap: 18px;
+  pointer-events: auto;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
+.faqCell {
+  flex: 1 1 0%;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,.28);
+  border-radius: 18px;
+  background: #0f0f14;
+  box-shadow: 0 22px 48px rgba(0,0,0,.5), inset 0 0 28px rgba(255,255,255,.038);
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  will-change: transform, flex-grow;
+}
+.faqCell:hover { border-color: rgba(255,255,255,.46); }
+.fqtag {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 3px 9px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 7px;
+  color: rgba(255,255,255,.55);
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.fqq {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.28;
+  margin-top: 11px;
+}
+.fqa {
+  color: rgba(255,255,255,.60);
+  line-height: 1.55;
+  margin-top: 12px;
+}
+.fplus {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid rgba(255,255,255,.30);
+  border-radius: 50%;
+}
+.fplus i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 1.6px;
+  background: rgba(255,255,255,.72);
+}
+.fplus i:first-child { transform: translate(-50%, -50%); }
+.fplus i:last-child  { transform: translate(-50%, -50%) rotate(90deg); }
 
 /* shared masked-word behavior for the new text sections */
-#worksText .w, #cta1Text .w, #cta2Text .w, .stat .w {
+#worksText .w, #cta1Text .w, #cta2Text .w {
   display: inline-block;
   overflow: hidden;
   vertical-align: bottom;
   line-height: 1.15;
 }
 #worksText .w + .w, #cta1Text .w + .w, #cta2Text .w + .w { margin-left: 0.30em; }
-#worksText .wi, #cta1Text .wi, #cta2Text .wi, .stat .wi {
+#worksText .wi, #cta1Text .wi, #cta2Text .wi {
   display: inline-block;
   will-change: transform;
 }

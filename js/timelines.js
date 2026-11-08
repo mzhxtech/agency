@@ -438,12 +438,13 @@ window.MZT = (function () {
     return tl;
   }
 
-  // 20 -> 21: works exit, "By the numbers" — stats punch in with count-up
-  function buildStatsIn() {
+  // 20 -> 21: works exit; "TRUST" slides in from the left, "THE" fades up,
+  // "PROCESS" slides in from the right
+  function buildTrustIn() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
     const wg = MZ.worksGeom();
-    const sg = MZ.statsGeom();
+    const tgm = MZ.trustGeom();
 
     tl.to(MZ.els.projs[3].el,
       { x: wg.cC.x - S.vw * 0.72, rotation: -4, autoAlpha: 0, duration: 0.75, ease: 'power3.in' }, 0);
@@ -454,37 +455,86 @@ window.MZT = (function () {
     });
     tl.to(MZ.els.worksTitle, { autoAlpha: 0, duration: 0.3 }, 0.5);
 
-    tl.set(MZ.els.statOver, { x: sg.ol.x, y: sg.ol.y, immediateRender: false }, 0.4);
-    tl.fromTo(MZ.els.statOver, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, immediateRender: false }, 0.4);
+    // TRUST: from the left
+    tl.fromTo(MZ.els.trust1,
+      { x: tgm.cx[0] - S.vw * 0.30, y: tgm.y, autoAlpha: 0 },
+      { x: tgm.cx[0], y: tgm.y, autoAlpha: 1, duration: 0.95, ease: 'power3.out', immediateRender: false }, 0.55);
+    // THE: plain fade, a touch of rise
+    tl.fromTo(MZ.els.trust2,
+      { x: tgm.cx[1], y: tgm.y + 26, autoAlpha: 0 },
+      { x: tgm.cx[1], y: tgm.y, autoAlpha: 1, duration: 0.7, ease: 'power2.out', immediateRender: false }, 0.95);
+    // PROCESS: from the right
+    tl.fromTo(MZ.els.trust3,
+      { x: tgm.cx[2] + S.vw * 0.30, y: tgm.y, autoAlpha: 0 },
+      { x: tgm.cx[2], y: tgm.y, autoAlpha: 1, duration: 0.95, ease: 'power3.out', immediateRender: false }, 0.72);
+    return tl;
+  }
 
-    MZ.els.stats.forEach((st, k) => {
-      const at = 0.55 + k * 0.18;
-      tl.set(st.el, { x: sg.xs[k], y: sg.y, immediateRender: false }, at);
-      tl.fromTo(st.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, immediateRender: false }, at);
-      tl.fromTo(st.wi, { yPercent: 130 }, { yPercent: 0, duration: 0.7, ease: 'power4.out', immediateRender: false }, at);
-      const counter = { v: 0 };
-      tl.fromTo(counter, { v: 0 },
-        {
-          v: MZ.data.stats[k].n, duration: 1.15, ease: 'power2.out', immediateRender: false,
-          onUpdate: () => { st.n.textContent = String(Math.round(counter.v)); },
-        }, at + 0.05);
-      tl.fromTo(st.cap, { y: 14, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.5, immediateRender: false }, at + 0.42);
+  // 21 -> 22: the wordmark trio lifts up and shrinks; the pledge slabs rise
+  // from the bottom one after another ("/ Direct access to developer", ...)
+  function buildPledges() {
+    const tl = gsap.timeline({ paused: true });
+    const S = MZ.S;
+    const tgm = MZ.trustGeom();
+    const pgm = MZ.pledGeom();
+
+    [MZ.els.trust1, MZ.els.trust2, MZ.els.trust3].forEach((el, i) => {
+      tl.to(el, { y: tgm.upY, scale: tgm.upS, duration: 0.95, ease: 'power3.inOut' }, i * 0.05);
+    });
+    MZ.els.pledges.forEach((pb, i) => {
+      tl.fromTo(pb.el,
+        { y: pgm.y + S.vh * 0.46, autoAlpha: 0, rotation: pgm.rots[i] + (i % 2 ? -6 : 7) },
+        { y: pgm.y, autoAlpha: 1, rotation: pgm.rots[i], duration: 0.9, ease: 'power3.out', immediateRender: false },
+        0.5 + i * 0.17);
     });
     return tl;
   }
 
-  // 21 -> 22: finale — MZHX reassembles center, CTA, contact pill, footer
+  // 22 -> 23: trust line + pledges exit upward; the FAQ grid clicks into place
+  function buildFaqIn() {
+    const tl = gsap.timeline({ paused: true });
+    const S = MZ.S;
+    const tgm = MZ.trustGeom();
+    const pgm = MZ.pledGeom();
+    const fg = MZ.faqGeom();
+
+    [MZ.els.trust1, MZ.els.trust2, MZ.els.trust3].forEach((el, i) => {
+      tl.to(el, { y: tgm.upY - S.vh * 0.17, autoAlpha: 0, duration: 0.6, ease: 'power2.in' }, i * 0.04);
+    });
+    MZ.els.pledges.forEach((pb, i) => {
+      tl.to(pb.el, {
+        y: pgm.y - S.vh * 0.36, autoAlpha: 0, rotation: pgm.rots[i] * -1.6,
+        duration: 0.6, ease: 'power2.in',
+      }, 0.05 + i * 0.05);
+    });
+
+    tl.set(MZ.els.faqCap, { x: S.vw / 2, y: fg.capY, immediateRender: false }, 0.42);
+    tl.fromTo(MZ.els.faqCap, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, immediateRender: false }, 0.42);
+    MZ.els.faqRows.forEach((row, r) => {
+      tl.set(row, { y: r === 0 ? fg.y1 : fg.y2, autoAlpha: 1, immediateRender: false }, 0.5 + r * 0.14);
+    });
+    MZ.els.faqCells.forEach((c, i) => {
+      tl.fromTo(c.el,
+        { y: S.vh * 0.075, autoAlpha: 0, scale: 0.965 },
+        { y: 0, autoAlpha: 1, scale: 1, duration: 0.62, ease: 'power3.out', immediateRender: false },
+        0.58 + i * 0.072);
+    });
+    return tl;
+  }
+
+  // 23 -> 24: FAQ grid exits up; finale — MZHX reassembles center, CTA lines,
+  // contact pill, footer
   function buildFinale() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
-    const sg = MZ.statsGeom();
+    const fg = MZ.faqGeom();
     const cg = MZ.ctaGeom();
     const fl = MZ.finaleLayout();
 
-    MZ.els.stats.forEach((st, k) => {
-      tl.to(st.el, { y: sg.y - S.vh * 0.09, autoAlpha: 0, duration: 0.55, ease: 'power2.in' }, 0 + k * 0.05);
+    MZ.els.faqRows.forEach((row, r) => {
+      tl.to(row, { y: (r === 0 ? fg.y1 : fg.y2) - S.vh * 0.14, autoAlpha: 0, duration: 0.55, ease: 'power2.in' }, 0.04 + r * 0.06);
     });
-    tl.to(MZ.els.statOver, { autoAlpha: 0, duration: 0.4 }, 0.1);
+    tl.to(MZ.els.faqCap, { y: fg.capY - S.vh * 0.07, autoAlpha: 0, duration: 0.4, ease: 'power2.in' }, 0.05);
 
     // hero letters fly from the header into the big centered wordmark
     MZ.els.letters.forEach((el, i) => {
@@ -529,7 +579,9 @@ window.MZT = (function () {
         : i === 17 ? buildWorksNext(1)
         : i === 18 ? buildWorksNext(2)
         : i === 19 ? buildWorksNext(3)
-        : i === 20 ? buildStatsIn()
+        : i === 20 ? buildTrustIn()
+        : i === 21 ? buildPledges()
+        : i === 22 ? buildFaqIn()
         : buildFinale();
     }
     return cache[i];

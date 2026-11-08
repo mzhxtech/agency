@@ -23,16 +23,20 @@ window.MZ = (function () {
       { name: 'RideShare', tag: 'Share the ride, split the fare', tags: 'Mobile · Maps · Ride sharing', g: 'g3', init: 'R' },
       { name: 'Planisher', tag: 'Calm construction planning workspace', tags: 'Web app · Scheduling · Cost control', g: 'g4', init: 'P' },
     ],
-    stats: [
-      { n: 120, suf: '+', cap: 'Projects shipped' },
-      { n: 40, suf: '+', cap: 'Brands served' },
-      { n: 98, suf: '%', cap: 'On-time delivery' },
+    cta1: ['Book', 'a', 'free', '30', 'minute', 'scoping', 'call,'],
+    cta2: ['or', 'get', 'a', 'free', 'audit', 'of', 'your', 'current', 'site.'],
+    pledges: ['Direct access to developer', 'Weekly Demos', 'Transparent Process'],
+    faqs: [
+      { q: 'How much does a website cost?', a: "It depends on scope. A simple business website with 5 to 8 pages costs less than a booking system, dashboard, or e-commerce store. After a free scoping call, we give you a fixed quote so there are no surprises later." },
+      { q: 'How long will it take?', a: 'A simple business website takes 1 to 2 weeks. A website with booking, payments, or a custom dashboard takes 3 to 6 weeks. An MVP with AI features or user accounts usually takes 4 to 8 weeks. We share a timeline before we start and show you a demo every week.' },
+      { q: 'Do you have previous client work to show?', a: 'We started our company after years of building products inside other teams, so most of our early work was internal. We have published full case studies of that work and built live concept projects you can try. On a call, we walk you through the code, decisions, and demos.' },
+      { q: 'Will I own my website and code?', a: 'Yes, 100 percent. After final payment, you own the code, design, domain, and content. We also give you a handover document with logins and how to update it.' },
+      { q: 'What is your process?', a: '1. Scoping call to understand your goal. 2. We share a proposal with features, timeline, and price. 3. Design and development with weekly demos. 4. Testing, revisions, and launch. 5. Handover and support. You talk directly to the developer building your project.' },
+      { q: 'What do you need from me to start?', a: 'Just your business name, what you want the website to do, and any examples you like. If you do not have content, logo, or images yet, we help you with that too. We handle the rest from the scoping call to launch.' },
     ],
-    cta1: ['Have', 'an', 'idea?'],
-    cta2: ["Let's", 'make', 'it', 'live.'],
     foot: '© MZHX Studio — slow-grilled w/ intent · Dribbble · GitHub · X',
   };
-  const MAXSTEP = 22;      // resting steps: 0..7 services, 8 grill, 9 ows, 10..16 flow (15 publish, 16 feedback loop), 17..20 works (4 projects), 21 stats, 22 finale
+  const MAXSTEP = 24;      // resting steps: 0..7 services, 8 grill, 9 ows, 10..16 flow (15 publish, 16 feedback loop), 17..20 works (4 projects), 21 trust, 22 pledges, 23 faqs, 24 finale/CTA
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -78,7 +82,7 @@ window.MZ = (function () {
     els.app.appendChild(els.logoBox);          // out of leftPanel -> whole viewport
     els.fullLayer.appendChild(els.ows);        // justifyCenter on full width
     els.fullLayer.appendChild(els.flowLayer);
-    els.fullLayer.appendChild(els.nextLayer);  // works / stats / finale sections
+    els.fullLayer.appendChild(els.nextLayer);  // works / trust / pledges / faqs / CTA finale
     els.app.appendChild(els.fullLayer);        // out of rightPanel -> whole viewport
 
     const NS = 'http://www.w3.org/2000/svg';
@@ -180,29 +184,101 @@ window.MZ = (function () {
       return d;
     });
 
-    // ---------- stats ----------
-    els.stats = data.stats.map(() => {
+    // ---------- TRUST THE PROCESS ----------
+    const mkTrust = (id, txt, cls) => {
       const a = document.createElement('div');
-      a.className = 'stat posbase';
+      a.className = 'posbase'; a.id = id;
       const c = document.createElement('span'); c.className = 'bcenter';
-      const w = document.createElement('span'); w.className = 'w';
-      const wi = document.createElement('span'); wi.className = 'wi';
-      const n = document.createElement('b'); n.textContent = '0';
-      const sfx = document.createElement('i'); sfx.className = 'suf';
-      wi.appendChild(n); wi.appendChild(sfx); w.appendChild(wi);
-      const cap = document.createElement('span'); cap.className = 'stCap';
-      c.appendChild(w); c.appendChild(cap); a.appendChild(c);
+      const h = document.createElement('h2'); h.className = cls; h.textContent = txt;
+      c.appendChild(h); a.appendChild(c);
       els.nextLayer.appendChild(a);
-      return { el: a, wi, n, suf: sfx, cap };
+      return { a, h };
+    };
+    const tw1 = mkTrust('trust1', 'TRUST', 'trustW');
+    const tw2 = mkTrust('trust2', 'THE', 'trustW trustThe');
+    const tw3 = mkTrust('trust3', 'PROCESS', 'trustW');
+    els.trust1 = tw1.a; els.trust2 = tw2.a; els.trust3 = tw3.a;
+    els.trust1Inner = tw1.h; els.trust2Inner = tw2.h; els.trust3Inner = tw3.h;
+    els.trustEls = [els.trust1, els.trust2, els.trust3];
+    els.trustInners = [els.trust1Inner, els.trust2Inner, els.trust3Inner];
+
+    // ---------- pledge slabs ("/ Direct access to developer", ...) ----------
+    els.pledges = data.pledges.map((t, i) => {
+      const a = document.createElement('div');
+      a.className = 'posbase'; a.id = 'pledge' + (i + 1);
+      const c = document.createElement('span');
+      c.className = 'pledge bcenter';
+      const lbl = document.createElement('span'); lbl.className = 'pbl';
+      const sl = document.createElement('b'); sl.textContent = '/';
+      lbl.appendChild(sl);
+      lbl.appendChild(document.createTextNode(' ' + t));
+      c.appendChild(lbl); a.appendChild(c);
+      els.nextLayer.appendChild(a);
+      return { el: a, box: c, lbl };
     });
 
-    els.statOver = document.createElement('div');
-    els.statOver.className = 'posbase';
-    els.statOver.id = 'statOver';
-    const ovC = document.createElement('span'); ovC.className = 'bcenter';
-    const ovS = document.createElement('span'); ovS.textContent = 'By the numbers';
-    ovC.appendChild(ovS); els.statOver.appendChild(ovC);
-    els.nextLayer.appendChild(els.statOver);
+    // ---------- FAQ grid: caption + two flex rows of toggle cells ----------
+    els.faqCap = document.createElement('div');
+    els.faqCap.className = 'posbase'; els.faqCap.id = 'faqCap';
+    const fCap = document.createElement('span'); fCap.className = 'bcenter';
+    const fCapS = document.createElement('span'); fCapS.textContent = 'FAQs';
+    fCap.appendChild(fCapS); els.faqCap.appendChild(fCap);
+    els.nextLayer.appendChild(els.faqCap);
+
+    els.faqRows = [0, 1].map(() => {
+      const row = document.createElement('div');
+      row.className = 'faqRow';
+      els.nextLayer.appendChild(row);
+      return row;
+    });
+    els.faqCells = [];
+    data.faqs.forEach((f, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'faqCell';
+      cell.innerHTML = '<span class="fplus"><i></i><i></i></span>' +
+        '<span class="fqtag">Q</span><h4 class="fqq"></h4><div class="fqa"></div>';
+      cell.querySelector('.fqq').textContent = f.q;
+      cell.querySelector('.fqa').textContent = f.a;
+      els.faqRows[Math.floor(i / 3)].appendChild(cell);
+      const rec = {
+        el: cell,
+        ans: cell.querySelector('.fqa'),
+        plus: cell.querySelector('.fplus'),
+        row: els.faqRows[Math.floor(i / 3)],
+        rowIdx: Math.floor(i / 3),
+        sibs: [],
+      };
+      els.faqCells.push(rec);
+    });
+    els.faqCells.forEach((c) => {
+      c.sibs = els.faqCells.filter((o) => o.row === c.row && o !== c);
+    });
+
+    // ---------- FAQ accordion interaction ----------
+    let faqOpen = null;
+    const closeFaq = (c) => {
+      if (!c) return;
+      gsap.to(c.el, { flexGrow: 1, duration: 0.5, ease: 'power3.inOut' });
+      c.sibs.forEach((s) => gsap.to(s.el, { flexGrow: 1, duration: 0.5, ease: 'power3.inOut' }));
+      gsap.to(c.ans, { autoAlpha: 0, y: 10, duration: 0.3, ease: 'power2.in' });
+      gsap.to(c.plus, { rotation: 0, duration: 0.36, ease: 'power3.inOut' });
+    };
+    const openFaq = (c) => {
+      gsap.to(c.el, { flexGrow: 2.36, duration: 0.55, ease: 'power3.inOut' });
+      c.sibs.forEach((s) => gsap.to(s.el, { flexGrow: 0.435, duration: 0.5, ease: 'power3.inOut' }));
+      gsap.to(c.ans, { autoAlpha: 1, y: 0, duration: 0.45, delay: 0.14, ease: 'power3.out' });
+      gsap.to(c.plus, { rotation: 135, duration: 0.42, ease: 'power3.inOut' });
+    };
+    els.faqCells.forEach((c) => {
+      c.el.addEventListener('click', () => {
+        if (c === faqOpen) { closeFaq(c); faqOpen = null; return; }
+        if (faqOpen && faqOpen.rowIdx !== c.rowIdx) closeFaq(faqOpen);
+        else if (faqOpen) closeFaq(faqOpen);
+        openFaq(c);
+        faqOpen = c;
+      });
+    });
+    els.faqCollapseAll = () => { if (faqOpen) { closeFaq(faqOpen); faqOpen = null; } };
 
     // ---------- finale ----------
     const buildCta = (id, words) => {
@@ -509,13 +585,48 @@ window.MZ = (function () {
     };
   }
 
-  /* stats row */
-  function statsGeom() {
-    const ol = { x: S.vw * 0.5, y: S.vh * 0.17 };
+  /* TRUST THE PROCESS: three words sharing one centered row */
+  function trustGeom() {
+    const y = S.vh * 0.485;
+    const fs = Math.min(S.vw * 0.062, S.vh * 0.135);
+    const gap = S.vw * 0.02;
+    const upY = S.vh * 0.16;                                   // lifted position over the pledges
+    const upS = 0.72;                                          // shrink while lifted
+    const w = els.trustW || [0, 0, 0];
+    const tot = w[0] + gap + w[1] + gap + w[2];
+    const x0 = S.vw * 0.5 - tot / 2;
     return {
-      ol,
-      xs: [S.vw * 0.26, S.vw * 0.5, S.vw * 0.74],
-      y: S.vh * 0.44,
+      y, fs, gap, upY, upS,
+      cx: [x0 + w[0] / 2, x0 + w[0] + gap + w[1] / 2, x0 + tot - w[2] / 2],
+    };
+  }
+
+  /* pledge slabs: three tilted boxes rising under the lifted wordmark;
+     widths are measured at prep (fonts) and parked in S.pledX */
+  function pledGeom() {
+    const pf = Math.min(S.vw * 0.0165, S.vh * 0.032);
+    const padX = pf * 1.55;
+    const h = pf * 2.5;
+    return {
+      pf, padX, h,
+      y: S.vh * 0.615,
+      gap: Math.max(24, S.vw * 0.022),
+      rots: [-2.5, 2, -1.75],
+    };
+  }
+
+  /* FAQ grid: small caption + two full-width flex rows of three cells */
+  function faqGeom() {
+    const rowH = S.vh * 0.252;
+    const y1 = S.vh * 0.215;
+    return {
+      capY: S.vh * 0.14,
+      rowX: S.vw * 0.052,
+      rowW: S.vw * 0.896,
+      rowH,
+      y1,
+      y2: y1 + rowH + S.vh * 0.021,
+      gap: S.vw * 0.016,
     };
   }
 
@@ -683,8 +794,8 @@ window.MZ = (function () {
     arrow1Geom();
     arrow2Geom();
 
-    // ---------- next sections (works / stats / finale) ----------
-    const wg = worksGeom(), stg = statsGeom();
+    // ---------- next sections (works / trust / pledges / faqs / finale) ----------
+    const wg = worksGeom();
     els.projs.forEach((pr) => {
       const el = pr.el;
       el.style.width = wg.cw + 'px';
@@ -708,19 +819,59 @@ window.MZ = (function () {
       n.querySelector('span').style.fontSize = nFont + 'px';
       gsap.set(n, { xPercent: -50, yPercent: -50, x: wg.nC.x, y: wg.nC.y, autoAlpha: 0 });
     });
-    const stFont = Math.min(S.vw * 0.062, S.vh * 0.14);
-    els.stats.forEach((st, k) => {
-      st.n.style.fontSize = stFont + 'px';
-      st.cap.style.fontSize = Math.min(S.vw * 0.015, 16) + 'px';
-      gsap.set(st.el, { xPercent: -50, yPercent: -50, x: stg.xs[k], y: stg.y, autoAlpha: 0 });
-      gsap.set(st.wi, { yPercent: 130 });
-      st.n.textContent = '0';
+
+    // trust trio: fitted fonts, then measure each word width for the shared row
+    let tgm = trustGeom();
+    els.trustInners.forEach((h) => { h.style.fontSize = tgm.fs + 'px'; });
+    els.trustW = els.trustInners.map((h) => h.offsetWidth);
+    tgm = trustGeom();
+    els.trustEls.forEach((el, i) => {
+      gsap.set(el, { x: tgm.cx[i], y: tgm.y, scale: 1, autoAlpha: 0 });
     });
-    gsap.set(els.statOver, { xPercent: -50, yPercent: -50, x: stg.ol.x, y: stg.ol.y, autoAlpha: 0 });
-    els.statOver.querySelector('span').style.fontSize = Math.min(S.vw * 0.0135, 15.5) + 'px';
+
+    // pledge slabs: label font, box sizing, centered row (centers parked in S.pledX)
+    const pgm = pledGeom();
+    S.pledX = [];
+    const pw = els.pledges.map((pb) => {
+      pb.lbl.style.fontSize = pgm.pf + 'px';
+      const bw = pb.lbl.offsetWidth + pgm.padX * 2;
+      pb.box.style.width = bw + 'px';
+      pb.box.style.height = pgm.h + 'px';
+      return bw;
+    });
+    let plx = S.vw * 0.5 - (pw.reduce((a, b) => a + b, 0) + pgm.gap * (pw.length - 1)) / 2;
+    els.pledges.forEach((pb, i) => {
+      S.pledX[i] = plx + pw[i] / 2;
+      plx += pw[i] + pgm.gap;
+      gsap.set(pb.el, { x: S.pledX[i], y: pgm.y, rotation: pgm.rots[i], scale: 1, autoAlpha: 0 });
+    });
+
+    // FAQ grid: caption + rows sized; cells reset to collapsed resting state
+    const fg = faqGeom();
+    gsap.set(els.faqCap, { x: S.vw / 2, y: fg.capY, autoAlpha: 0 });
+    els.faqCap.querySelector('span').style.fontSize = Math.min(S.vw * 0.0125, 14.5) + 'px';
+    const qFs = clamp(Math.min(S.vw * 0.0135, S.vh * 0.021), 12, 16.5);
+    const aFs = clamp(Math.min(S.vw * 0.0122, S.vh * 0.019), 11, 14);
+    els.faqRows.forEach((row, r) => {
+      row.style.left = fg.rowX + 'px';
+      row.style.top = '0px';
+      row.style.width = fg.rowW + 'px';
+      row.style.height = fg.rowH + 'px';
+      gsap.set(row, { x: 0, y: r === 0 ? fg.y1 : fg.y2, autoAlpha: 0 });
+    });
+    els.faqCells.forEach((c) => {
+      c.el.querySelector('.fqq').style.fontSize = qFs + 'px';
+      c.el.querySelector('.fqtag').style.fontSize = Math.max(9.5, qFs * 0.72) + 'px';
+      c.ans.style.fontSize = aFs + 'px';
+      gsap.set(c.el, { flexGrow: 1, y: 0 });
+      gsap.set(c.ans, { autoAlpha: 0, y: 10 });
+      gsap.set(c.plus, { rotation: 0 });
+    });
+    if (els.faqCollapseAll) els.faqCollapseAll();
+
     const ctg = ctaGeom();
-    els.cta1Inner.style.fontSize = fitText(els.cta1Inner, Math.min(S.vw * 0.046, S.vh * 0.092), S.vw * 0.62) + 'px';
-    els.cta2Inner.style.fontSize = fitText(els.cta2Inner, Math.min(S.vw * 0.046, S.vh * 0.092), S.vw * 0.66) + 'px';
+    els.cta1Inner.style.fontSize = fitText(els.cta1Inner, Math.min(S.vw * 0.044, S.vh * 0.088), S.vw * 0.74) + 'px';
+    els.cta2Inner.style.fontSize = fitText(els.cta2Inner, Math.min(S.vw * 0.044, S.vh * 0.088), S.vw * 0.80) + 'px';
     [[els.cta1, ctg.l1, els.cta1Words], [els.cta2, ctg.l2, els.cta2Words]].forEach(([a, pos, words]) => {
       gsap.set(a, { xPercent: -50, yPercent: -50, x: pos.x, y: pos.y, autoAlpha: 0 });
       gsap.set(words, { yPercent: 115 });
@@ -914,7 +1065,7 @@ window.MZ = (function () {
     encapBounds, groupGeom, groupPt, execGeom, testerGeom,
     owsCenter, owsTop, arrow1Geom, arrow2Geom, arrow3Geom, publishGeom,
     loopGeom, arrow4Geom, arrow5Geom, arrow6Geom,
-    worksGeom, statsGeom, finaleLayout, ctaGeom,
+    worksGeom, trustGeom, pledGeom, faqGeom, finaleLayout, ctaGeom,
     boat, placeBoat,
     setLetters, setServiceResting,
     makeLetterCycle, makeGlowWave, fitText, clamp,

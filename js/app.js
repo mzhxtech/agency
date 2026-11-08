@@ -4,7 +4,7 @@
   const MZ = window.MZ;
   const MZT = window.MZT;
 
-  let current = -1;      // -1 = intro playing; 0..14 = resting steps
+  let current = -1;      // -1 = intro playing; 0..MAXSTEP = resting steps
   let busy = true;
   let queued = 0;        // pending direction (max 1)
   let lastStep = 0;      // timestamp guard
@@ -163,7 +163,7 @@
   function applyResting() {
     const t = current;
     const S = MZ.S;
-    MZ.setLetters(t >= 22 ? 'finale' : t >= 9 ? 'header' : 'compact');
+    MZ.setLetters(t >= 24 ? 'finale' : t >= 9 ? 'header' : 'compact');
     MZ.els.logoBox.classList.toggle('hero-live', t >= 0);
 
     if (t <= 7) {
@@ -291,7 +291,7 @@
       gsap.set(MZ.els.a6head, { autoAlpha: 0, x: 0, y: 9 });
     }
 
-    // ---------- selected works (steps 17..20, four projects) ----------
+    // ---------- works (steps 17..20, four projects) ----------
     const wg = MZ.worksGeom();
     MZ.els.projs.forEach((pr, k) => {
       const active = t === 17 + k;
@@ -305,25 +305,34 @@
       gsap.set(n, { x: wg.nC.x, y: wg.nC.y, autoAlpha: active ? 1 : 0 });
     });
 
-    // ---------- by the numbers (step 21) ----------
-    const sg = MZ.statsGeom();
-    gsap.set(MZ.els.statOver, { x: sg.ol.x, y: sg.ol.y, autoAlpha: t >= 21 && t <= 21 ? 1 : 0 });
-    MZ.els.stats.forEach((st, k) => {
-      const active = t >= 21 && t <= 21;
-      gsap.set(st.el, { x: sg.xs[k], y: sg.y, autoAlpha: active ? 1 : 0 });
-      gsap.set(st.wi, { yPercent: active ? 0 : 130 });
-      st.n.textContent = active ? String(MZ.data.stats[k].n) : '0';
-      gsap.set(st.cap, { y: 0, autoAlpha: active ? 1 : 0 });
+    // ---------- TRUST THE PROCESS (21) + pledge row (22) ----------
+    const tgm = MZ.trustGeom();
+    const trustOn = t === 21 || t === 22;
+    const trustY = t >= 22 ? tgm.upY : tgm.y;
+    const trustS = t >= 22 ? tgm.upS : 1;
+    MZ.els.trustEls.forEach((el, i) => {
+      gsap.set(el, { x: tgm.cx[i], y: trustY, scale: trustS, autoAlpha: trustOn ? 1 : 0 });
+    });
+    const pgm = MZ.pledGeom();
+    MZ.els.pledges.forEach((pb, i) => {
+      gsap.set(pb.el, { x: S.pledX[i], y: pgm.y, rotation: pgm.rots[i], scale: 1, autoAlpha: t === 22 ? 1 : 0 });
     });
 
-    // ---------- finale (step 22) ----------
+    // ---------- FAQ grid (23) ----------
+    const fg = MZ.faqGeom();
+    gsap.set(MZ.els.faqCap, { x: S.vw / 2, y: fg.capY, autoAlpha: t === 23 ? 1 : 0 });
+    MZ.els.faqRows.forEach((row, r) => {
+      gsap.set(row, { y: r === 0 ? fg.y1 : fg.y2, autoAlpha: t === 23 ? 1 : 0 });
+    });
+
+    // ---------- finale / CTA (step 24) ----------
     const cg = MZ.ctaGeom();
-    gsap.set(MZ.els.cta1, { x: cg.l1.x, y: cg.l1.y, autoAlpha: t >= 22 ? 1 : 0 });
-    gsap.set(MZ.els.cta2, { x: cg.l2.x, y: cg.l2.y, autoAlpha: t >= 22 ? 1 : 0 });
-    gsap.set(MZ.els.cta1Words, { yPercent: t >= 22 ? 0 : 120 });
-    gsap.set(MZ.els.cta2Words, { yPercent: t >= 22 ? 0 : 120 });
-    gsap.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, scale: 1, autoAlpha: t >= 22 ? 1 : 0 });
-    gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 22 ? 1 : 0 });
+    gsap.set(MZ.els.cta1, { x: cg.l1.x, y: cg.l1.y, autoAlpha: t >= 24 ? 1 : 0 });
+    gsap.set(MZ.els.cta2, { x: cg.l2.x, y: cg.l2.y, autoAlpha: t >= 24 ? 1 : 0 });
+    gsap.set(MZ.els.cta1Words, { yPercent: t >= 24 ? 0 : 120 });
+    gsap.set(MZ.els.cta2Words, { yPercent: t >= 24 ? 0 : 120 });
+    gsap.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, scale: 1, autoAlpha: t >= 24 ? 1 : 0 });
+    gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 24 ? 1 : 0 });
 
     syncIdle(t);
   }
