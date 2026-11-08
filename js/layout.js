@@ -672,14 +672,36 @@ window.MZ = (function () {
   }
 
   /* smooth traveling glow wave: each letter eases in/out; the next letter starts rising
-     while the previous is still fading (cosine bump, half-overlap at the midpoints) */
+     while the previous is still fading (cosine bump, half-overlap at the midpoints).
+     During the handoff a small glowing mote arcs from the fading letter to the rising
+     one — as if it carries the light over (moon drawing its light from the sun). */
   function makeGlowWave(spans, perLetter) {
     const n = spans.length || 4;
     const rest = (getComputedStyle(spans[0]).color || 'rgb(138,138,144)').match(/\d+/g) || [138, 138, 144];
     const C0 = { r: +rest[0], g: +rest[1], b: +rest[2] };
     const C1 = { r: 255, g: 255, b: 255 };
     const W = 1.0;                                 // bump half-width in letter units
-    let proxy = { k: 0 }, tween = null, phase = 0;
+    let proxy = { k: 0 }, tween = null, mote = null, glyphs = null;
+
+    function anchorRects() {
+      return glyphs.map((g2) => {
+        const r = g2.rect.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2, h: Math.max(r.height, r.width) };
+      });
+    }
+
+    function ensureMote() {
+      if (mote) return;
+      glyphs = spans.map((sp) => ({
+        el: sp,
+        rect: sp.querySelector('.self') || sp,
+      }));
+      mote = document.createElement('div');
+      mote.className = 'glowMote';
+      mote.setAttribute('aria-hidden', 'true');
+      (MZ.els.app || document.body).appendChild(mote);
+      gsap.set(mote, { xPercent: -50, yPercent: -50, autoAlpha: 0 });
+    }
 
     function paint() {
       for (let i = 0; i < n; i++) {
@@ -696,22 +718,46 @@ window.MZ = (function () {
           ? '0 0 ' + (5 + 21 * t).toFixed(1) + 'px rgba(255,255,255,' + (0.35 * t).toFixed(3) + ')'
           : 'none';
       }
+      // ---- the little light-carrier between handoff partners ----
+      const kk = proxy.k;
+      const rawA = Math.floor(kk - 0.15);          // handoff window starts 15% before the next center
+      const from = ((rawA % n) + n) % n;
+      const to = (((rawA + 1) % n) + n) % n;
+      const u = (kk - (rawA + 0.15)) / 0.6;        // flight spans 0.6 letter-units
+      if (u > 0.002 && u < 0.998 && mote) {
+        const cs = anchorRects();
+        const P0 = cs[from], P1 = cs[to];
+        const hop = Math.min(64, Math.max(16, P0.h * 0.55));
+        const mx = (P0.x + P1.x) / 2;
+        const my = Math.min(P0.y, P1.y) - hop;     // arcing over the glyph tops
+        const x = (1 - u) * (1 - u) * P0.x + 2 * (1 - u) * u * mx + u * u * P1.x;
+        const y = (1 - u) * (1 - u) * P0.y + 2 * (1 - u) * u * my + u * u * P1.y;
+        gsap.set(mote, {
+          x, y,
+          scale: 0.55 + 0.5 * Math.sin(u * Math.PI),
+          autoAlpha: Math.pow(Math.sin(u * Math.PI), 0.85) * 0.95,
+        });
+      } else if (mote) {
+        gsap.set(mote, { autoAlpha: 0 });
+      }
     }
     return {
       spans,
       start() {
         if (tween) return;
-        phase = 0;
+        ensureMote();
+        proxy.k = 0;
         paint();
         tween = gsap.to(proxy, {
           k: n, duration: perLetter * n, ease: 'none', repeat: -1,
-          onUpdate() { proxy.k = proxy.k % n; phase = proxy.k; paint(); },
+          onUpdate() { proxy.k = proxy.k % n; paint(); },
         });
       },
       stop() {
         if (!tween) return;
         tween.kill(); tween = null;
         spans.forEach((sp) => { sp.style.color = ''; sp.style.textShadow = ''; });
+        if (mote) gsap.set(mote, { autoAlpha: 0 });
       },
       get running() { return !!tween; },
     };

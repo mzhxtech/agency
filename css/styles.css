@@ -74,6 +74,21 @@ html, body {
   opacity: 0;
 }
 
+/* the little light-carrier arcing between letters (the moon-mote) */
+.glowMote {
+  position: absolute;
+  left: 0; top: 0;
+  z-index: 7;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,.95) 0%, rgba(255,255,255,.55) 34%, rgba(255,255,255,0) 70%);
+  box-shadow: 0 0 14px rgba(255,255,255,.65), 0 0 30px rgba(255,255,255,.22);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
 /* ============ CENTER divider river ============ */
 #divider {
   position: fixed;
