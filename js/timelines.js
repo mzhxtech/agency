@@ -296,7 +296,70 @@ window.MZT = (function () {
   }
 
   /* ---------- lazy cache ---------- */
-  // 15 -> 16: tester contracts, flow fades, "Selected Works" + card 01 arrive
+  // 15 -> 16: tester rail pinches in and its caption lifts off while the
+  // improving loop spins up: arrow to the Feedback cluster (avatars + caption),
+  // then into the Improve box, then straight back onto the Testing box
+  function buildLoop() {
+    const tl = gsap.timeline({ paused: true });
+    const lg = MZ.loopGeom();
+    const a4 = MZ.arrow4Geom();
+    const a5 = MZ.arrow5Geom();
+    const a6 = MZ.arrow6Geom();
+
+    // tester rail pinches in (caption stays put)
+    tl.to(MZ.els.tester, { height: lg.tester.h, duration: 0.9, ease: 'power3.inOut' }, 0);
+
+    // Publish tips down to Feedback
+    tl.set(MZ.els.arrow4, { autoAlpha: 1, immediateRender: false }, 0.25);
+    tl.fromTo(MZ.els.a4shaft, { strokeDashoffset: a4.len }, { strokeDashoffset: 0, duration: 0.6, ease: 'power2.out', immediateRender: false }, 0.27);
+    tl.fromTo(MZ.els.a4head,
+      { autoAlpha: 0, y: -9 },
+      { autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)', immediateRender: false }, 0.82);
+
+    // feedback cluster: avatars pop singly, caption slides up through its mask
+    tl.set(MZ.els.fbGroup, { xPercent: -50, yPercent: -50, immediateRender: false }, 0.55);
+    tl.fromTo(MZ.els.fbGroup,
+      { x: lg.fb.x, y: lg.fb.grpY, scale: 0.72, autoAlpha: 0 },
+      { x: lg.fb.x, y: lg.fb.grpY, scale: 1, autoAlpha: 1, duration: 0.7, ease: 'back.out(1.6)', immediateRender: false }, 0.55);
+    MZ.els.users.forEach((u, i) => {
+      tl.fromTo(u,
+        { scale: 0.3, autoAlpha: 0 },
+        { scale: 1, autoAlpha: 1, duration: 0.42, ease: 'back.out(2.2)', immediateRender: false },
+        1.0 + i * 0.13);
+    });
+    tl.fromTo(MZ.els.fbLbl, { yPercent: 115 }, { yPercent: 0, duration: 0.55, ease: 'power4.out', immediateRender: false }, 1.32);
+
+    // feedback hands left into Improve
+    tl.set(MZ.els.impBox, { xPercent: -50, yPercent: -50, immediateRender: false }, 1.3);
+    tl.fromTo(MZ.els.impBox,
+      { x: lg.imp.x, y: lg.imp.y, scale: 0.62, autoAlpha: 0 },
+      { x: lg.imp.x, y: lg.imp.y, scale: 1, autoAlpha: 1, duration: 0.7, ease: 'back.out(1.5)', immediateRender: false }, 1.4);
+    tl.fromTo(MZ.els.impLbl, { yPercent: 115 }, { yPercent: 0, duration: 0.5, ease: 'power4.out', immediateRender: false }, 1.98);
+    tl.set(MZ.els.arrow5, { autoAlpha: 1, immediateRender: false }, 1.28);
+    tl.fromTo(MZ.els.a5shaft, { strokeDashoffset: a5.len }, { strokeDashoffset: 0, duration: 0.55, ease: 'power2.out', immediateRender: false }, 1.3);
+    tl.fromTo(MZ.els.a5head,
+      { autoAlpha: 0, x: 9 },
+      { autoAlpha: 1, x: 0, duration: 0.3, ease: 'back.out(2)', immediateRender: false }, 1.8);
+
+    // Improve feeds straight back up into Testing — the loop closes; the rail's
+    // border glows for a beat the moment the arrowhead touches it
+    tl.set(MZ.els.arrow6, { autoAlpha: 1, immediateRender: false }, 2.0);
+    tl.fromTo(MZ.els.a6shaft, { strokeDashoffset: a6.len }, { strokeDashoffset: 0, duration: 0.5, ease: 'power2.out', immediateRender: false }, 2.02);
+    tl.fromTo(MZ.els.a6head,
+      { autoAlpha: 0, y: 9 },
+      { autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)', immediateRender: false }, 2.45);
+    tl.to(MZ.els.tester, {
+      boxShadow: '0 12px 44px rgba(0,0,0,.55), 0 0 46px 10px rgba(166,173,255,.5)',
+      borderColor: 'rgba(255,255,255,.8)', duration: 0.85, ease: 'sine.inOut',
+    }, 2.2);
+    tl.to(MZ.els.tester, {
+      boxShadow: '0 12px 44px rgba(0,0,0,.55), inset 0 0 32px rgba(255,255,255,.045)',
+      borderColor: 'rgba(255,255,255,.38)', duration: 0.9, ease: 'sine.inOut',
+    }, 3.08);
+    return tl;
+  }
+
+  // 16 -> 17: tester contracts, flow fades, "Selected Works" + card 01 arrive
   function buildWorksIn() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
@@ -304,7 +367,7 @@ window.MZT = (function () {
     const tg = MZ.testerGeom();
 
     tl.to(MZ.els.tester, { width: tg.w0, height: tg.h0, autoAlpha: 0, duration: 0.6, ease: 'power2.in' }, 0);
-    tl.to([MZ.els.plan, MZ.els.design, MZ.els.exec, MZ.els.encap, MZ.els.arrow1, MZ.els.arrow2, MZ.els.publish, MZ.els.arrow3], { autoAlpha: 0, duration: 0.45 }, 0.05);
+    tl.to([MZ.els.plan, MZ.els.design, MZ.els.exec, MZ.els.encap, MZ.els.arrow1, MZ.els.arrow2, MZ.els.publish, MZ.els.arrow3, MZ.els.fbGroup, MZ.els.impBox, MZ.els.arrow4, MZ.els.arrow5, MZ.els.arrow6], { autoAlpha: 0, duration: 0.45 }, 0.05);
     tl.to(MZ.els.ows, { scale: 0.88, autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 0.1);
     MZ.els.owsWords.forEach((w, i) => {
       tl.to(w, { yPercent: -140, duration: 0.5, ease: 'power3.in' }, 0.12 + i * 0.05);
@@ -348,7 +411,7 @@ window.MZT = (function () {
     return tl;
   }
 
-  // 18 -> 19: works exit, "By the numbers" — stats punch in with count-up
+  // 19 -> 20: works exit, "By the numbers" — stats punch in with count-up
   function buildStatsIn() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
@@ -383,7 +446,7 @@ window.MZT = (function () {
     return tl;
   }
 
-  // 19 -> 20: finale — MZHX reassembles center, CTA, contact pill, footer
+  // 20 -> 21: finale — MZHX reassembles center, CTA, contact pill, footer
   function buildFinale() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
@@ -434,10 +497,11 @@ window.MZT = (function () {
         : i === 12 ? buildExec()
         : i === 13 ? buildTester()
         : i === 14 ? buildPublish()
-        : i === 15 ? buildWorksIn()
-        : i === 16 ? buildWorksNext(1)
-        : i === 17 ? buildWorksNext(2)
-        : i === 18 ? buildStatsIn()
+        : i === 15 ? buildLoop()
+        : i === 16 ? buildWorksIn()
+        : i === 17 ? buildWorksNext(1)
+        : i === 18 ? buildWorksNext(2)
+        : i === 19 ? buildStatsIn()
         : buildFinale();
     }
     return cache[i];

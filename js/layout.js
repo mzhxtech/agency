@@ -31,7 +31,7 @@ window.MZ = (function () {
     cta2: ["Let's", 'make', 'it', 'live.'],
     foot: '© MZHX Studio — slow-grilled w/ intent · Dribbble · GitHub · X',
   };
-  const MAXSTEP = 20;      // resting steps after intro: 0..7 services, 8 grill, 9 ows, 10..15 flow, 16..18 works, 19 stats, 20 finale
+  const MAXSTEP = 21;      // resting steps after intro: 0..7 services, 8 grill, 9 ows, 10..16 flow (15 publish, 16 feedback loop), 17..19 works, 20 stats, 21 finale
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -58,11 +58,16 @@ window.MZ = (function () {
     els.arrow1     = document.querySelector('#arrow1');
     els.arrow2     = document.querySelector('#arrow2');
     els.arrow3     = document.querySelector('#arrow3');
+    els.arrow4     = document.querySelector('#arrow4');
+    els.arrow5     = document.querySelector('#arrow5');
+    els.arrow6     = document.querySelector('#arrow6');
     els.plan       = document.querySelector('#planBox');
     els.design     = document.querySelector('#designBox');
     els.exec       = document.querySelector('#exec');
     els.tester     = document.querySelector('#testerBox');
     els.publish    = document.querySelector('#publishBox');
+    els.fbGroup    = document.querySelector('#fbGroup');
+    els.impBox     = document.querySelector('#improveBox');
     els.ows        = document.querySelector('#ows');
     els.owsInner   = document.querySelector('#owsText');
     els.nextLayer  = document.querySelector('#nextLayer');
@@ -243,16 +248,19 @@ window.MZ = (function () {
     els.testerBl  = els.tester.querySelector('.bl');
     els.pubLbl    = els.publish.querySelector('.bli');
     els.pubBars   = Array.from(els.publish.querySelectorAll('.pile i'));
+    els.impLbl    = els.impBox.querySelector('.bli');
+    els.fbLbl     = els.fbGroup.querySelector('.bli');
+    els.users     = Array.from(els.fbGroup.querySelectorAll('.users i'));
 
     // arrows: shaft + head paths
-    [els.arrow1, els.arrow2, els.arrow3].forEach((svg) => {
+    const aNames = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'];
+    [els.arrow1, els.arrow2, els.arrow3, els.arrow4, els.arrow5, els.arrow6].forEach((svg, i) => {
       svg.innerHTML = '';
       const shaft = document.createElementNS(NS, 'path'); shaft.setAttribute('class', 'shaft');
       const head = document.createElementNS(NS, 'path'); head.setAttribute('class', 'head');
       svg.appendChild(shaft); svg.appendChild(head);
-      if (svg === els.arrow1) { els.a1shaft = shaft; els.a1head = head; }
-      else if (svg === els.arrow2) { els.a2shaft = shaft; els.a2head = head; }
-      else { els.a3shaft = shaft; els.a3head = head; }
+      els[aNames[i] + 'shaft'] = shaft;
+      els[aNames[i] + 'head'] = head;
     });
   }
 
@@ -424,6 +432,64 @@ window.MZ = (function () {
       tg.x2, pg.y, pg.leftX, pg.y, 0, Math.max(14, s * 0.11));
   }
 
+  /* the improvement loop: the tester rail pinches in vertically a touch to open
+     a return lane; a feedback cluster (avatar stack + caption) hangs under
+     Publish; the Improve box sits bottom-left; arrows run
+     Publish->Feedback->Improve and land straight back onto Testing */
+  function loopGeom() {
+    const s = boxS();
+    const tg = testerGeom();
+    const pg = publishGeom();
+    const d = s * 0.8;                              // improve box side
+    const iconD = s * 0.233;                        // avatar diameter
+    const wf = s * 0.115;                           // "Feedback" caption size
+    const fitBottom = S.vh - 14 - d / 2;            // lowest improve center
+    let LS = 0.925;                                 // tester vertical pinch
+    let tb = tg.center.y + (tg.hF / 2) * LS;
+    let impCy = tb + 56 + d / 2;
+    while (impCy > fitBottom && LS > 0.7) {
+      LS -= 0.02;
+      tb = tg.center.y + (tg.hF / 2) * LS;
+      impCy = tb + 56 + d / 2;
+    }
+    const impCx = Math.min(tg.center.x + tg.wF * 0.34, pg.leftX - d * 0.9);
+    const iconsCy = Math.min(impCy - iconD * 0.55, S.vh - 46);
+    const wordCy = iconsCy + iconD * 0.85;
+    const rowW = iconD * 2.24;                      // 3 avatars, 62% stack
+    const grpTop = iconsCy - iconD / 2;
+    return {
+      LS, wordFont: wf,
+      tester: { w: tg.wF, h: tg.hF * LS, center: tg.center },
+      imp: { x: impCx, y: impCy, w: d, h: d },
+      fb: { x: pg.x, iconsCy, wordCy, rowW, iconD,
+            grpY: (grpTop + wordCy + wf * 0.6) / 2 },
+    };
+  }
+
+  /* arrow4: Publish's bottom edge -> down to just above the avatars */
+  function arrow4Geom() {
+    const s = boxS(), pg = publishGeom(), lg = loopGeom();
+    return placeArrow(els.arrow4, els.a4shaft, els.a4head,
+      pg.x, pg.y + pg.h / 2,
+      pg.x, lg.fb.iconsCy - lg.fb.iconD / 2 - 8, 0, Math.max(14, s * 0.11));
+  }
+
+  /* arrow5: avatars' left edge -> into the Improve box's right edge */
+  function arrow5Geom() {
+    const s = boxS(), lg = loopGeom();
+    return placeArrow(els.arrow5, els.a5shaft, els.a5head,
+      lg.fb.x - lg.fb.rowW / 2 - 8, lg.fb.iconsCy,
+      lg.imp.x + lg.imp.w / 2, lg.fb.iconsCy, 0, Math.max(14, s * 0.11));
+  }
+
+  /* arrow6: Improve's top edge -> tip lands on the pinched Testing rail */
+  function arrow6Geom() {
+    const s = boxS(), lg = loopGeom();
+    return placeArrow(els.arrow6, els.a6shaft, els.a6head,
+      lg.imp.x, lg.imp.y - lg.imp.h / 2,
+      lg.imp.x, lg.tester.center.y + lg.tester.h / 2, 0, Math.max(14, s * 0.11));
+  }
+
   /* ows anchors (viewport scope) */
   const owsCenter = () => ({ x: S.vw * 0.5, y: S.vh * 0.5 });
   const owsTop = () => ({ x: S.vw * 0.5, y: S.vh * 0.115 });
@@ -572,6 +638,8 @@ window.MZ = (function () {
       x: tg.center.x, y: tg.center.y,
       width: tg.w0, height: tg.h0, autoAlpha: 0,
     });
+    els.tester.style.boxShadow = '';
+    els.tester.style.borderColor = '';
     // publish box: sized + parked, bars prepped for their drop
     const pg = publishGeom();
     els.publish.style.width = pg.w + 'px';
@@ -582,6 +650,24 @@ window.MZ = (function () {
     gsap.set(els.pubLbl, { yPercent: 115 });
     arrow3Geom();
     gsap.set(els.arrow3, { autoAlpha: 0 });
+
+    // feedback loop: improve box + avatars + caption, arrows pre-placed
+    const lg = loopGeom();
+    els.impBox.style.width = lg.imp.w + 'px';
+    els.impBox.style.height = lg.imp.h + 'px';
+    els.impLbl.style.fontSize = s * 0.15 + 'px';
+    gsap.set(els.impBox, { xPercent: -50, yPercent: -50, x: lg.imp.x, y: lg.imp.y, scale: 1, autoAlpha: 0 });
+    gsap.set(els.impLbl, { yPercent: 115 });
+    els.users.forEach((u, i) => {
+      u.style.width = u.style.height = lg.fb.iconD + 'px';
+      u.style.marginLeft = i ? -(lg.fb.iconD * 0.38) + 'px' : '0px';
+    });
+    els.fbLbl.style.fontSize = lg.wordFont + 'px';
+    gsap.set(els.fbGroup, { xPercent: -50, yPercent: -50, x: lg.fb.x, y: lg.fb.grpY, scale: 1, autoAlpha: 0 });
+    gsap.set(els.users, { scale: 1 });
+    gsap.set(els.fbLbl, { yPercent: 115 });
+    arrow4Geom(); arrow5Geom(); arrow6Geom();
+    gsap.set([els.arrow4, els.arrow5, els.arrow6], { autoAlpha: 0 });
 
     // label centered in the free band under the compressed cluster
     const cg = groupGeom(), cB = encapBounds();
@@ -822,6 +908,7 @@ window.MZ = (function () {
     midPos, svcStackGeom, boxS, planP, p1, p2,
     encapBounds, groupGeom, groupPt, execGeom, testerGeom,
     owsCenter, owsTop, arrow1Geom, arrow2Geom, arrow3Geom, publishGeom,
+    loopGeom, arrow4Geom, arrow5Geom, arrow6Geom,
     worksGeom, statsGeom, finaleLayout, ctaGeom,
     boat, placeBoat,
     setLetters, setServiceResting,
