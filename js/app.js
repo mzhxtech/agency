@@ -93,11 +93,14 @@
       tl.eventCallback('onReverseComplete', null);
       tl.play(0);
     } else {
-      if (current === 8) stopJitter();   // free the grill transform before reversing
-      const tl = MZT.getTrans(current - 1);
-      tl.eventCallback('onReverseComplete', () => { current = next; afterStep(); });
-      tl.eventCallback('onComplete', null);
-      tl.reverse();
+      if (current === 8) stopJitter();   // free the grill's live jitter before snapping
+      // scrolling back: land on the previous resting arrangement in one clean
+      // snap — replaying transitions in reverse reads as glitchy mid-flight
+      // (boxes un-spiraling, tester un-growing), so instead apply the resting
+      // layout directly; it also heals any half-finished states
+      current = next;
+      applyResting();
+      afterStep();
     }
   }
 
@@ -248,6 +251,9 @@
       { x: tg.center.x, y: tg.center.y, width: tg.wF, height: lg.tester.h, scaleX: 1, scaleY: 1, autoAlpha: 1 });
     else gsap.set(MZ.els.tester,
       { x: tg.center.x, y: tg.center.y, width: tg.w0, height: tg.h0, scaleX: 1, scaleY: 1, autoAlpha: 0 });
+    // glow beat leftovers: return the rail to its plain chrome when snapping
+    MZ.els.tester.style.boxShadow = '';
+    MZ.els.tester.style.borderColor = '';
     gsap.set(MZ.els.testerLbl, { yPercent: t >= 15 && t <= 16 ? 0 : 115 });
 
     // ---------- publish (15) + feedback loop (16) ----------
@@ -323,6 +329,12 @@
     gsap.set(MZ.els.faqCap, { x: S.vw / 2, y: fg.capY, autoAlpha: t === 23 ? 1 : 0 });
     MZ.els.faqRows.forEach((row, r) => {
       gsap.set(row, { y: r === 0 ? fg.y1 : fg.y2, autoAlpha: t === 23 ? 1 : 0 });
+    });
+    // cells return to the collapsed resting state (heals a snap taken mid-hover)
+    MZ.els.faqCells.forEach((c) => {
+      gsap.set(c.el, { flexGrow: 1 });
+      gsap.set(c.ans, { autoAlpha: 0, y: 10 });
+      gsap.set(c.plus, { rotation: 0 });
     });
 
     // ---------- finale / CTA (step 24) ----------

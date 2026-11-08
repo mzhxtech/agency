@@ -254,8 +254,11 @@ window.MZ = (function () {
       c.sibs = els.faqCells.filter((o) => o.row === c.row && o !== c);
     });
 
-    // ---------- FAQ accordion interaction ----------
+    // ---------- FAQ accordion: hover a cell and it expands — no click needed;
+    // pointer out of a row collapses it again (touch taps also expand) ----------
     let faqOpen = null;
+    let closeTimer = null;
+    const cancelClose = () => { if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; } };
     const closeFaq = (c) => {
       if (!c) return;
       gsap.to(c.el, { flexGrow: 1, duration: 0.5, ease: 'power3.inOut' });
@@ -269,16 +272,25 @@ window.MZ = (function () {
       gsap.to(c.ans, { autoAlpha: 1, y: 0, duration: 0.45, delay: 0.14, ease: 'power3.out' });
       gsap.to(c.plus, { rotation: 135, duration: 0.42, ease: 'power3.inOut' });
     };
+    const activate = (c) => {
+      cancelClose();
+      if (c === faqOpen) return;
+      if (faqOpen) closeFaq(faqOpen);
+      openFaq(c);
+      faqOpen = c;
+    };
     els.faqCells.forEach((c) => {
-      c.el.addEventListener('click', () => {
-        if (c === faqOpen) { closeFaq(c); faqOpen = null; return; }
-        if (faqOpen && faqOpen.rowIdx !== c.rowIdx) closeFaq(faqOpen);
-        else if (faqOpen) closeFaq(faqOpen);
-        openFaq(c);
-        faqOpen = c;
+      c.el.addEventListener('mouseenter', () => activate(c));
+      c.el.addEventListener('click', () => activate(c));   // touch fallback
+    });
+    els.faqRows.forEach((row) => {
+      row.addEventListener('mouseleave', () => {
+        if (!faqOpen) return;
+        cancelClose();
+        closeTimer = setTimeout(() => { if (faqOpen) { closeFaq(faqOpen); faqOpen = null; } closeTimer = null; }, 160);
       });
     });
-    els.faqCollapseAll = () => { if (faqOpen) { closeFaq(faqOpen); faqOpen = null; } };
+    els.faqCollapseAll = () => { cancelClose(); if (faqOpen) { closeFaq(faqOpen); faqOpen = null; } };
 
     // ---------- finale ----------
     const buildCta = (id, words) => {
