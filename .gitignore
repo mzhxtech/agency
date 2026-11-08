@@ -1,0 +1,21 @@
+# --- archives / temp ---
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- editors / OS ---
+.vscode/
+.idea/
+*.swp
+*~
+
+# --- dependencies / builds (this project is vanilla, but future-proof) ---
+node_modules/
+dist/
+build/

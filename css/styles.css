@@ -1,0 +1,330 @@
+/* ============ MZHX — base ============ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: #050507;
+  font-family: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #fff;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+#app { position: fixed; inset: 0; background: #050507; }
+
+/* ============ LEFT PANEL (black side) ============ */
+#leftPanel {
+  position: fixed;
+  left: 0; top: 0;
+  width: 50vw; height: 100vh;
+  background: #000;
+  z-index: 2;
+  overflow: hidden;
+}
+
+/* logo lives at viewport scope so intro letters can use the full stage */
+#logoBox {
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+
+/* hero letters: zero-size anchors moved+scaled by GSAP, glyph centered by .self */
+.hl {
+  position: absolute; left: 0; top: 0;
+  width: 0; height: 0;
+  font-size: 27vh;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #8a8a90;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+  transition: color .8s ease, text-shadow .8s ease;
+}
+.hl.lit {
+  color: #fff;
+  text-shadow: 0 0 26px rgba(255,255,255,.35);
+}
+.self {
+  position: relative;
+  display: inline-block;
+  transform: translate(-50%, -50%);
+  line-height: 1.06;
+  will-change: transform;
+}
+.swing { display: inline-block; will-change: transform; }
+#logoBox.hero-live .swing {
+  animation: pend 2.9s ease-in-out infinite alternate;
+  transform-origin: 50% -70%;
+}
+@keyframes pend {
+  from { transform: rotate(-6.5deg); }
+  to   { transform: rotate( 6.5deg); }
+}
+.joint {
+  position: absolute;
+  top: 0.06em; left: 50%;
+  width: 7px; height: 7px;
+  margin-left: -3.5px;
+  border-radius: 50%;
+  background: #6b6b76;
+  opacity: 0;
+}
+
+/* ============ CENTER divider line ============ */
+#divider {
+  position: fixed;
+  inset: 0;
+  width: 100vw; height: 100vh;
+  z-index: 3;
+  pointer-events: none;
+}
+#dBase {
+  fill: none;
+  stroke: url(#dgrad);
+  stroke-width: 4px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  filter: drop-shadow(0 0 10px rgba(255,255,255,.35));
+}
+#dFlow {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 2.2px;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 0.07 0.93;
+  stroke-dashoffset: 0;
+  opacity: 0;
+  filter: drop-shadow(0 0 7px rgba(255,255,255,.75));
+  animation: dflow 5.2s linear infinite;
+}
+@keyframes dflow { to { stroke-dashoffset: -1; } }
+
+/* ============ RIGHT STAGE (services, until the full-width section) ============ */
+#rightPanel {
+  position: fixed;
+  left: 50vw; top: 0;
+  width: 50vw; height: 100vh;
+  background: transparent;
+  z-index: 4;
+  overflow: hidden;
+}
+
+#svcLayer {
+  position: absolute;
+  inset: 0;
+  clip-path: circle(140% at 50% 52%);
+  will-change: transform, clip-path;
+}
+
+/* zero-size anchor + centered inner: GSAP moves the anchor, inner centers itself */
+.posbase {
+  position: absolute; left: 0; top: 0;
+  width: 0; height: 0;
+  white-space: nowrap;
+}
+.bcenter {
+  display: inline-block;
+  transform: translate(-50%, -50%);
+}
+
+/* service texts (word masked reveal) */
+.svc {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #f4f4f7;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, font-size;
+}
+.svc .w, #owsText .w, #grill .w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  line-height: 1.15;
+}
+.svc .w + .w, #owsText .w + .w, #grill .w + .w { margin-left: 0.28em; }
+.svc .wi, #owsText .wi, #grill .wi {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* "Your Idea to Launch" — per-letter color cycle */
+#yitl {
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #c9c9d2;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
+#yitl .yl {
+  display: inline-block;
+  transition: color .7s ease, text-shadow .7s ease;
+}
+#yitl .yl.lit {
+  color: #fff;
+  text-shadow: 0 0 22px rgba(255,255,255,.32);
+}
+
+/* grilled stat line (alpha managed on the wrapper anchor) */
+#grill {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+  will-change: transform;
+}
+
+/* ============ FULL-WIDTH SECTION LAYER ============ */
+#fullLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* "Our way of work" */
+#ows {
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
+#owsText { font-weight: 700; letter-spacing: -0.03em; color: #fff; }
+
+/* ============ FLOW (plan -> design -> execution -> testing) ============ */
+#flowLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#flowGroup {
+  position: absolute; left: 0; top: 0;
+  width: 100%; height: 100%;
+  will-change: transform;
+}
+
+.box {
+  position: absolute; left: 0; top: 0;
+  border: 2px solid rgba(255,255,255,.38);
+  border-radius: 26px;
+  background: rgba(255,255,255,.05);
+  box-shadow: 0 12px 44px rgba(0,0,0,.55), inset 0 0 32px rgba(255,255,255,.045);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
+.box .bl {
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.2;
+}
+.box .bli {
+  display: inline-block;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #fff;
+  will-change: transform;
+}
+/* the big enclosing rectangle: label parked in the free band under the cluster */
+#testerBox .bl {
+  position: absolute;
+  left: 50%; top: 72%;
+  transform: translate(-50%, -50%);
+}
+
+#encap {
+  position: absolute; left: 0; top: 0;
+  border: 1.5px solid rgba(255,255,255,.20);
+  border-radius: 32px;
+  background: rgba(255,255,255,.03);
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
+
+.arrow {
+  position: absolute; left: 0; top: 0;
+  overflow: visible;
+  opacity: 0;
+  visibility: hidden;
+}
+.arrow .shaft {
+  fill: none;
+  stroke: rgba(255,255,255,.8);
+  stroke-width: 3px;
+  stroke-linecap: round;
+}
+.arrow .head { fill: rgba(255,255,255,.9); }
+
+.posbox {
+  position: absolute; left: 0; top: 0;
+  width: 0; height: 0;
+}
+#exec {
+  position: absolute; left: 0; top: 0;
+  border-radius: 50%;
+  background: linear-gradient(125deg, #1e1b4b, #4338ca 30%, #7c3aed 58%, #db2777 88%);
+  background-size: 300% 300%;
+  animation: gradShift 7s ease-in-out infinite;
+  box-shadow: 0 0 110px rgba(124,58,237,.45), 0 0 40px rgba(56,189,248,.28), inset 0 0 60px rgba(0,0,0,.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
+#exec .bli { letter-spacing: .08em; }
+@keyframes gradShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* ============ scroll hint ============ */
+#scrollHint {
+  position: fixed;
+  right: 30px; bottom: 26px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #6b6b75;
+  font-size: 11px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity .6s ease;
+  pointer-events: none;
+}
+#scrollHint.on { opacity: 1; }
+#scrollHint i {
+  width: 30px; height: 1px;
+  background: #3f3f46;
+  position: relative;
+}
+#scrollHint i::after {
+  content: '';
+  position: absolute;
+  left: 0; top: -2px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #a1a1aa;
+  animation: hintdot 1.6s ease-in-out infinite;
+}
+@keyframes hintdot {
+  0%   { transform: translateX(0);    opacity: 0; }
+  25%  { opacity: 1; }
+  100% { transform: translateX(25px); opacity: 0; }
+}
