@@ -43,7 +43,6 @@ html, body {
   opacity: 0;
   visibility: hidden;
   will-change: transform;
-  transition: color .8s ease, text-shadow .8s ease;
 }
 .hl.lit {
   color: #fff;

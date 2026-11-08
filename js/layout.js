@@ -671,6 +671,52 @@ window.MZ = (function () {
     };
   }
 
+  /* smooth traveling glow wave: each letter eases in/out; the next letter starts rising
+     while the previous is still fading (cosine bump, half-overlap at the midpoints) */
+  function makeGlowWave(spans, perLetter) {
+    const n = spans.length || 4;
+    const rest = (getComputedStyle(spans[0]).color || 'rgb(138,138,144)').match(/\d+/g) || [138, 138, 144];
+    const C0 = { r: +rest[0], g: +rest[1], b: +rest[2] };
+    const C1 = { r: 255, g: 255, b: 255 };
+    const W = 1.0;                                 // bump half-width in letter units
+    let proxy = { k: 0 }, tween = null, phase = 0;
+
+    function paint() {
+      for (let i = 0; i < n; i++) {
+        let d = (proxy.k - i) % n;
+        if (d > n / 2) d -= n; else if (d < -n / 2) d += n;
+        const a = Math.abs(d);
+        let t = a >= W ? 0 : 0.5 * (1 + Math.cos(Math.PI * d / W));
+        t = t * t * (3 - 2 * t);                   // smooth shoulders on top of the cosine
+        const r = Math.round(C0.r + (C1.r - C0.r) * t);
+        const g2 = Math.round(C0.g + (C1.g - C0.g) * t);
+        const b = Math.round(C0.b + (C1.b - C0.b) * t);
+        spans[i].style.color = 'rgb(' + r + ',' + g2 + ',' + b + ')';
+        spans[i].style.textShadow = t > 0.02
+          ? '0 0 ' + (5 + 21 * t).toFixed(1) + 'px rgba(255,255,255,' + (0.35 * t).toFixed(3) + ')'
+          : 'none';
+      }
+    }
+    return {
+      spans,
+      start() {
+        if (tween) return;
+        phase = 0;
+        paint();
+        tween = gsap.to(proxy, {
+          k: n, duration: perLetter * n, ease: 'none', repeat: -1,
+          onUpdate() { proxy.k = proxy.k % n; phase = proxy.k; paint(); },
+        });
+      },
+      stop() {
+        if (!tween) return;
+        tween.kill(); tween = null;
+        spans.forEach((sp) => { sp.style.color = ''; sp.style.textShadow = ''; });
+      },
+      get running() { return !!tween; },
+    };
+  }
+
   return {
     S, els, services, data, MAXSTEP,
     buildDOM, metrics, fitAll, measureLetters, prepStatic,
@@ -681,6 +727,6 @@ window.MZ = (function () {
     worksGeom, statsGeom, finaleLayout, ctaGeom,
     boat, placeBoat,
     setLetters, setServiceResting,
-    makeLetterCycle, fitText, clamp,
+    makeLetterCycle, makeGlowWave, fitText, clamp,
   };
 })();

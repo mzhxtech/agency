@@ -249,7 +249,7 @@ window.MZT = (function () {
     const tg = MZ.testerGeom();
 
     tl.to(MZ.els.tester, { width: tg.w0, height: tg.h0, autoAlpha: 0, duration: 0.6, ease: 'power2.in' }, 0);
-    tl.to([MZ.els.plan, MZ.els.design, MZ.els.exec, MZ.els.encap, MZ.els.arrow2], { autoAlpha: 0, duration: 0.45 }, 0.05);
+    tl.to([MZ.els.plan, MZ.els.design, MZ.els.exec, MZ.els.encap, MZ.els.arrow1, MZ.els.arrow2], { autoAlpha: 0, duration: 0.45 }, 0.05);
     tl.to(MZ.els.ows, { scale: 0.88, autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 0.1);
     MZ.els.owsWords.forEach((w, i) => {
       tl.to(w, { yPercent: -140, duration: 0.5, ease: 'power3.in' }, 0.12 + i * 0.05);
