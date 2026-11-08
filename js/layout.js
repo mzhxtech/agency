@@ -45,8 +45,12 @@ window.MZ = (function () {
     els.letters    = Array.from(document.querySelectorAll('#logoBox .hl'));
     els.swingX     = document.querySelector('#logoBox .swing');
     els.joint      = document.querySelector('#logoBox .joint');
-    els.dBase      = document.querySelector('#dBase');
-    els.dFlow      = document.querySelector('#dFlow');
+    els.dPath      = document.querySelector('#dPath');
+    els.dBank      = document.querySelector('#dBank');
+    els.dChan      = document.querySelector('#dChan');
+    els.dWater     = document.querySelector('#dWater');
+    els.dCrest     = document.querySelector('#dCrest');
+    els.boat       = document.querySelector('#riverBoat');
     els.svcLayer   = document.querySelector('#svcLayer');
     els.grillWrap  = document.querySelector('#grillWrap');
     els.grill      = document.querySelector('#grill');
@@ -493,6 +497,35 @@ window.MZ = (function () {
     return placeArrow(els.arrow2, els.a2shaft, els.a2head, de.x, de.y, ex, ey, 46, Math.max(14, s * 0.11));
   }
 
+  /* ---------------- divider river + boat ---------------- */
+
+  /* boat state: p = progress along the river path (0 top -> 1 bottom);
+     drift/sway/rot are idle wave-rocking offsets, driven from app.js */
+  const boat = { p: 0, drift: 0, rot: 0, sway: 0 };
+
+  function placeBoat() {
+    if (!els.boat || !els.dPath) return;
+    if (!placeBoat.len) placeBoat.len = els.dPath.getTotalLength();
+    const vb = els.divider.viewBox.baseVal;
+    const VBW = vb.width || 100, VBH = vb.height || 100;
+    const L = placeBoat.len;
+    const p = clamp(boat.p, -0.03, 1.08);
+    const l = p * L;
+    const pt = els.dPath.getPointAtLength(Math.max(0.0001, Math.min(l, L)));
+    const ahead = els.dPath.getPointAtLength(l >= L - 0.001 ? L - 0.001 : Math.min(l + 2.5, L - 0.001));
+    // map to screen space (viewBox stretches non-uniformly)
+    const uvx = (ahead.x - pt.x) * (S.vw / VBW);
+    const uvy = (ahead.y - pt.y) * (S.vh / VBH);
+    const ul = Math.hypot(uvx, uvy) || 1;
+    const ux = uvx / ul, uy = uvy / ul;
+    const nx = -uy, ny = ux;                     // river normal
+    gsap.set(els.boat, {
+      x: (pt.x / VBW) * S.vw + ux * boat.drift + nx * boat.sway,
+      y: (pt.y / VBH) * S.vh + uy * boat.drift + ny * boat.sway,
+      rotation: Math.atan2(uvy, uvx) * 180 / Math.PI - 90 + boat.rot,
+    });
+  }
+
   /* ---------------- static prep (boot / resize, no animation) ---------------- */
   function prepStatic() {
     const s = boxS(), sg = execGeom(), tg = testerGeom();
@@ -567,6 +600,16 @@ window.MZ = (function () {
     gsap.set(els.pill, { xPercent: -50, yPercent: -50, x: ctg.pill.x, y: ctg.pill.y, scale: 1, autoAlpha: 0 });
     els.footLine.querySelector('span').style.fontSize = Math.min(13.5, S.vw * 0.011) + 'px';
     gsap.set(els.footLine, { xPercent: -50, yPercent: -50, x: S.vw / 2, y: ctg.foot, autoAlpha: 0 });
+
+    // ---------- river + boat sizing ----------
+    const riverW = clamp(S.vh * 0.105, 62, 128);
+    els.dBank.style.strokeWidth = riverW + 'px';
+    els.dChan.style.strokeWidth = Math.round(riverW * 0.80) + 'px';
+    els.dWater.style.strokeWidth = Math.round(riverW * 0.54) + 'px';
+    els.dCrest.style.strokeWidth = '3px';           // thin hairline wave glints
+    els.boat.style.width = Math.round(riverW * 0.80) + 'px';
+    gsap.set(els.boat, { xPercent: -50, yPercent: -50 });   // placeBoat drives the box CENTER
+    placeBoat();
   }
 
   /* letters resting setters (resize-safe) */
@@ -641,6 +684,7 @@ window.MZ = (function () {
     encapBounds, groupGeom, groupPt, execGeom, testerGeom,
     owsCenter, owsTop, arrow1Geom, arrow2Geom,
     worksGeom, statsGeom, finaleLayout, ctaGeom,
+    boat, placeBoat,
     setLetters, setServiceResting,
     makeLetterCycle, fitText, clamp,
   };

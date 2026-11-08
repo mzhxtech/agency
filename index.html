@@ -23,24 +23,33 @@
     <span class="hl" data-i="3"><span class="self"><span class="swing">X</span><i class="joint"></i></span></span>
   </div>
 
-  <!-- Curvy animated divider line -->
+  <!-- Curvy animated divider -> river with boat -->
   <svg id="divider" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
     <defs>
-      <linearGradient id="dgrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#3f3f46">
-          <animate attributeName="stop-color" values="#3f3f46;#8a8a95;#3f3f46" dur="6s" repeatCount="indefinite" />
+      <linearGradient id="wgrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#16233f">
+          <animate attributeName="stop-color" values="#16233f;#1d3358;#16233f" dur="7s" repeatCount="indefinite" />
         </stop>
-        <stop offset="50%" stop-color="#e4e4e9">
-          <animate attributeName="stop-color" values="#b9b9c6;#ffffff;#b9b9c6" dur="6s" repeatCount="indefinite" />
+        <stop offset="45%" stop-color="#274a80">
+          <animate attributeName="stop-color" values="#274a80;#4d80cf;#274a80" dur="7s" repeatCount="indefinite" />
         </stop>
-        <stop offset="100%" stop-color="#3f3f46">
-          <animate attributeName="stop-color" values="#3f3f46;#8a8a95;#3f3f46" dur="6s" repeatCount="indefinite" />
+        <stop offset="100%" stop-color="#141f38">
+          <animate attributeName="stop-color" values="#141f38;#1d3358;#141f38" dur="7s" repeatCount="indefinite" />
         </stop>
       </linearGradient>
     </defs>
-    <path id="dBase" pathLength="1" d="M 49.5 -2 C 45.5 14, 54.5 27, 50.5 41 C 47.5 53, 46.5 63, 51.5 75 C 55 85, 53 92, 49.8 102" />
-    <path id="dFlow" pathLength="1" d="M 49.5 -2 C 45.5 14, 54.5 27, 50.5 41 C 47.5 53, 46.5 63, 51.5 75 C 55 85, 53 92, 49.8 102" />
+    <path id="dBank" pathLength="1" d="M 49.5 -2 C 45.5 14, 54.5 27, 50.5 41 C 47.5 53, 46.5 63, 51.5 75 C 55 85, 53 92, 49.8 102" />
+    <path id="dChan" pathLength="1" d="M 49.5 -2 C 45.5 14, 54.5 27, 50.5 41 C 47.5 53, 46.5 63, 51.5 75 C 55 85, 53 92, 49.8 102" />
+    <path id="dWater" pathLength="1" d="M 49.5 -2 C 45.5 14, 54.5 27, 50.5 41 C 47.5 53, 46.5 63, 51.5 75 C 55 85, 53 92, 49.8 102" />
+    <path id="dCrest" pathLength="1" d="M 49.5 -2 C 45.5 14, 54.5 27, 50.5 41 C 47.5 53, 46.5 63, 51.5 75 C 55 85, 53 92, 49.8 102" />
+    <!-- hidden geometry path: pure measuring helper for boat positioning / draw length -->
+    <path id="dPath" d="M 49.5 -2 C 45.5 14, 54.5 27, 50.5 41 C 47.5 53, 46.5 63, 51.5 75 C 55 85, 53 92, 49.8 102" fill="none" stroke="none" opacity="0" />
   </svg>
+
+  <!-- little boat riding down the river (art: boat.svg) -->
+  <div id="riverBoat" aria-hidden="true">
+    <img src="boat.svg" alt="" draggable="false" />
+  </div>
 
   <!-- RIGHT: content stage (scroll driven) -->
   <section id="rightPanel">

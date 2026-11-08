@@ -31,12 +31,16 @@ window.MZT = (function () {
     // pendulum pivot dot above X
     tl.fromTo(MZ.els.joint, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.4, immediateRender: false }, flyEnd - 0.15);
 
-    // 3) curvy divider draws itself (gradient animated by CSS/SMIL, flowing shimmer loops)
-    tl.fromTo(MZ.els.dBase,
-      { strokeDashoffset: 1, autoAlpha: 0 },
-      { strokeDashoffset: 0, autoAlpha: 1, duration: 1.3, ease: 'power2.inOut', immediateRender: false },
-      flyEnd - 0.25);
-    tl.fromTo(MZ.els.dFlow, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.7, immediateRender: false }, flyEnd + 0.85);
+    // 3) the river pours in as one continuous band: banks, water, glints — then the little boat rides in
+    [[MZ.els.dBank, -0.10], [MZ.els.dChan, 0.0], [MZ.els.dWater, 0.14]].forEach(([el, off]) => {
+      tl.fromTo(el,
+        { strokeDashoffset: 1, autoAlpha: 0 },
+        { strokeDashoffset: 0, autoAlpha: 1, duration: 1.3, ease: 'power2.inOut', immediateRender: false },
+        flyEnd + off);
+    });
+    tl.fromTo(MZ.els.dCrest, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.9, immediateRender: false }, flyEnd + 0.55);
+    boatTo(tl, 0, 0.05, flyEnd + 0.75, 1.3, 'power1.inOut');      // boat peeks in from the top
+    tl.fromTo(MZ.els.boat, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, immediateRender: false }, flyEnd + 0.85);
 
     // 4) first service: "Websites" drops from top, "Development" unveils word by word
     const sv0 = MZ.services[0];
@@ -50,6 +54,15 @@ window.MZT = (function () {
     return tl;
   }
 
+  /* ---------- boat travel along the river ---------- */
+  const BOATP = [0.05, 0.164, 0.284, 0.403, 0.523, 0.642, 0.762, 0.881, 1.0];
+  function boatTo(tl, pFrom, pTo, at, dur, ease) {
+    tl.fromTo(MZ.boat,
+      { p: pFrom },
+      { p: pTo, duration: dur, ease: ease || 'power1.inOut', immediateRender: false, onUpdate: () => MZ.placeBoat() },
+      at);
+  }
+
   /* ---------- helper builders ---------- */
 
   // step i -> i+1 for services i in 0..5: middle goes to a top slot, next rises from bottom
@@ -61,6 +74,7 @@ window.MZT = (function () {
     const slots = MZ.topSlots(i + 1);
     const m = MZ.midPos();
 
+    boatTo(tl, BOATP[i], BOATP[i + 1], 0, 1.35, 'power1.inOut');
     tl.to(out.anchor, { x: m.x, y: slots[i].y, fontSize: slots[i].font, opacity: 0.55, duration: 1.0, ease: 'power3.inOut' }, 0);
     for (let j = 0; j < i; j++) {
       tl.to(MZ.services[j].anchor, { y: slots[j].y, fontSize: slots[j].font, duration: 1.0, ease: 'power3.inOut' }, 0);
@@ -81,6 +95,7 @@ window.MZT = (function () {
     const tl = gsap.timeline({ paused: true });
     const m = MZ.midPos();
     const y = S.ph * 0.80;
+    boatTo(tl, BOATP[6], BOATP[7], 0, 1.5, 'power1.inOut');
     tl.fromTo(MZ.els.yitl,
       { x: m.x, y: y - S.ph * 0.09, scale: 0.35, rotation: -8, autoAlpha: 0 },
       { x: m.x, y: y, scale: 1, rotation: 0, autoAlpha: 1, duration: 0.95, ease: 'elastic.out(1, 0.55)', immediateRender: false }, 0.05);
@@ -96,6 +111,7 @@ window.MZT = (function () {
     const g = MZ.els.grillWrap;
     const p = MZ.midPos();
 
+    boatTo(tl, BOATP[7], BOATP[8], 0, 1.7, 'power1.inOut');   // boat reaches the river's bottom
     tl.to(st, { clipPath: 'circle(38% at 50% 52%)', scale: 0.88, duration: 0.55, ease: 'power2.in' }, 0);
     tl.to(st, { clipPath: 'circle(0% at 50% 52%)', scale: 0.4, autoAlpha: 0, duration: 0.5, ease: 'power3.in' }, 0.55);
 
@@ -120,6 +136,8 @@ window.MZT = (function () {
     const oc = MZ.owsCenter();
 
     tl.to(MZ.els.grillWrap, { y: oc.y - MZ.S.vh * 0.10, scale: 0.8, autoAlpha: 0, duration: 0.4, ease: 'power2.in' }, 0);
+    boatTo(tl, 1.0, 1.10, 0, 1.2, 'power1.in');                    // boat drifts off the bottom
+    tl.to(MZ.els.boat, { autoAlpha: 0, duration: 0.7, ease: 'power2.in' }, 0.3);
     tl.to(MZ.els.divider, { autoAlpha: 0, duration: 0.7, ease: 'power2.inOut' }, 0.15);
     tl.to(MZ.els.leftPanel, { autoAlpha: 0, duration: 0.9, ease: 'power2.inOut' }, 0.15);
     MZ.els.letters.forEach((el, i) => {

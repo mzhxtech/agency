@@ -31,7 +31,30 @@
       });
     } else if (step !== 8) stopJitter();
 
+    // river boat: gentle wave rocking while the hero is alive
+    if (step >= 0 && step <= 8) startBob();
+    else stopBob();
+
     MZ.els.hint.classList.toggle('on', step >= 0 && step < 8);
+  }
+
+  /* ---- boat idle rocking (rides the waves, doesn't move forward) ---- */
+  let bobTweens = null;
+  function startBob() {
+    if (bobTweens) return;
+    const b = MZ.boat;
+    bobTweens = [
+      gsap.to(b, { drift: -7, duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: -1, onUpdate: () => MZ.placeBoat() }),
+      gsap.to(b, { rot: -6.5, duration: 2.95, ease: 'sine.inOut', yoyo: true, repeat: -1, onUpdate: () => MZ.placeBoat() }),
+      gsap.to(b, { sway: 5, duration: 2.05, ease: 'sine.inOut', yoyo: true, repeat: -1, onUpdate: () => MZ.placeBoat() }),
+    ];
+  }
+  function stopBob() {
+    if (!bobTweens) return;
+    bobTweens.forEach((t) => t.kill());
+    bobTweens = null;
+    gsap.set(MZ.boat, { drift: 0, rot: 0, sway: 0 });
+    MZ.placeBoat();
   }
 
   function stopJitter() {
@@ -163,6 +186,7 @@
 
     // divider + left panel merge into full-width section at step >= 9
     gsap.set(MZ.els.divider, { autoAlpha: t >= 9 ? 0 : 1 });
+    gsap.set(MZ.els.boat, { autoAlpha: t >= 9 ? 0 : 1 });
     gsap.set(MZ.els.leftPanel, { autoAlpha: t >= 9 ? 0 : 1 });
 
     // plan

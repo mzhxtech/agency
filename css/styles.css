@@ -75,7 +75,7 @@ html, body {
   opacity: 0;
 }
 
-/* ============ CENTER divider line ============ */
+/* ============ CENTER divider river ============ */
 #divider {
   position: fixed;
   inset: 0;
@@ -83,30 +83,44 @@ html, body {
   z-index: 3;
   pointer-events: none;
 }
-#dBase {
+
+/* ---- river layers (widths set in JS, all share the same path) ---- */
+#dBank, #dChan, #dWater {
   fill: none;
-  stroke: url(#dgrad);
-  stroke-width: 4px;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
   stroke-dasharray: 1 1;
   stroke-dashoffset: 1;
   opacity: 0;
-  filter: drop-shadow(0 0 10px rgba(255,255,255,.35));
 }
-#dFlow {
+#dBank { stroke: rgba(173,193,240,.15); }
+#dChan { stroke: url(#wgrad); }
+#dWater { stroke: rgba(150,182,255,.18); }
+#dCrest {
   fill: none;
-  stroke: #ffffff;
-  stroke-width: 2.2px;
+  stroke: rgba(214,232,255,.34);
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
-  stroke-dasharray: 0.07 0.93;
-  stroke-dashoffset: 0;
+  stroke-width: 3px;
+  stroke-dasharray: 0.016 0.11;
   opacity: 0;
-  filter: drop-shadow(0 0 7px rgba(255,255,255,.75));
-  animation: dflow 5.2s linear infinite;
+  animation: crestflow 7.2s linear infinite;
 }
-@keyframes dflow { to { stroke-dashoffset: -1; } }
+@keyframes crestflow { to { stroke-dashoffset: -1; } }
+
+/* ---- little paper boat ---- */
+#riverBoat {
+  position: fixed;
+  left: 0; top: 0;
+  z-index: 3;
+  width: 72px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+  filter: drop-shadow(0 10px 16px rgba(0,0,0,.5));
+}
+#riverBoat svg, #riverBoat img { width: 100%; height: auto; display: block; overflow: visible; user-select: none; -webkit-user-drag: none; }
 
 /* ============ RIGHT STAGE (services, until the full-width section) ============ */
 #rightPanel {
