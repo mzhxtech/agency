@@ -218,7 +218,7 @@ html, body {
 }
 #owsText { font-weight: 700; letter-spacing: -0.03em; color: #fff; }
 
-/* ============ FLOW (plan -> design -> execution -> testing) ============ */
+/* ============ FLOW (plan -> design -> execution -> testing -> publish) ============ */
 #flowLayer {
   position: absolute;
   inset: 0;
@@ -309,6 +309,36 @@ html, body {
 @keyframes gradShift {
   0%, 100% { background-position: 0% 50%; }
   50%      { background-position: 100% 50%; }
+}
+
+/* publish stage: pile of bars that drops in from the top, label under it */
+#publishBox .pile {
+  position: absolute; left: 15%; right: 15%; top: 14%;
+  height: 46%;
+  will-change: transform;
+}
+#publishBox .pile i {
+  position: absolute; left: 0; top: 0;
+  width: 100%; height: 19%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,255,255,.80), rgba(255,255,255,.32));
+}
+#publishBox .pile i:nth-child(2) {
+  top: 27%; width: 84%;
+  background: linear-gradient(90deg, rgba(255,255,255,.62), rgba(255,255,255,.24));
+}
+#publishBox .pile i:nth-child(3) {
+  top: 54%; width: 92%;
+  background: linear-gradient(90deg, rgba(255,255,255,.70), rgba(255,255,255,.28));
+}
+#publishBox .pile i:nth-child(4) {
+  top: 81%; width: 58%;
+  background: linear-gradient(90deg, rgba(255,255,255,.56), rgba(255,255,255,.20));
+}
+#publishBox .bl {
+  position: absolute;
+  left: 50%; top: 76%;
+  transform: translate(-50%, -50%);
 }
 
 /* ============ scroll hint ============ */

@@ -31,7 +31,7 @@ window.MZ = (function () {
     cta2: ["Let's", 'make', 'it', 'live.'],
     foot: '© MZHX Studio — slow-grilled w/ intent · Dribbble · GitHub · X',
   };
-  const MAXSTEP = 19;      // resting steps after intro: 0..7 services, 8 grill, 9 ows, 10..14 flow, 15..17 works, 18 stats, 19 finale
+  const MAXSTEP = 20;      // resting steps after intro: 0..7 services, 8 grill, 9 ows, 10..15 flow, 16..18 works, 19 stats, 20 finale
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -57,10 +57,12 @@ window.MZ = (function () {
     els.encap      = document.querySelector('#encap');
     els.arrow1     = document.querySelector('#arrow1');
     els.arrow2     = document.querySelector('#arrow2');
+    els.arrow3     = document.querySelector('#arrow3');
     els.plan       = document.querySelector('#planBox');
     els.design     = document.querySelector('#designBox');
     els.exec       = document.querySelector('#exec');
     els.tester     = document.querySelector('#testerBox');
+    els.publish    = document.querySelector('#publishBox');
     els.ows        = document.querySelector('#ows');
     els.owsInner   = document.querySelector('#owsText');
     els.nextLayer  = document.querySelector('#nextLayer');
@@ -239,15 +241,18 @@ window.MZ = (function () {
     els.execLbl   = els.exec.querySelector('.bli');
     els.testerLbl = els.tester.querySelector('.bli');
     els.testerBl  = els.tester.querySelector('.bl');
+    els.pubLbl    = els.publish.querySelector('.bli');
+    els.pubBars   = Array.from(els.publish.querySelectorAll('.pile i'));
 
     // arrows: shaft + head paths
-    [els.arrow1, els.arrow2].forEach((svg) => {
+    [els.arrow1, els.arrow2, els.arrow3].forEach((svg) => {
       svg.innerHTML = '';
       const shaft = document.createElementNS(NS, 'path'); shaft.setAttribute('class', 'shaft');
       const head = document.createElementNS(NS, 'path'); head.setAttribute('class', 'head');
       svg.appendChild(shaft); svg.appendChild(head);
       if (svg === els.arrow1) { els.a1shaft = shaft; els.a1head = head; }
-      else { els.a2shaft = shaft; els.a2head = head; }
+      else if (svg === els.arrow2) { els.a2shaft = shaft; els.a2head = head; }
+      else { els.a3shaft = shaft; els.a3head = head; }
     });
   }
 
@@ -392,11 +397,31 @@ window.MZ = (function () {
     const x2 = Math.max(gx + gw, C.x + R) + pad;
     const y2 = Math.max(gy + gh, C.y + R) + pad;
     return {
+      x1, y1, x2, y2,
       center: { x: (x1 + x2) / 2, y: (y1 + y2) / 2 },
       wF: x2 - x1, hF: y2 - y1,
       w0: s * 0.42, h0: s * 0.42,
       label: Math.min(x2 - x1, y2 - y1) * 0.105,
     };
+  }
+
+  /* publish box: parked right of the full tester rect, wherever space allows */
+  function publishGeom() {
+    const s = boxS();
+    const tg = testerGeom();
+    const w = s, h = s;
+    let left = tg.x2 + s * 0.62;                 // gap: room for the arrow
+    const availR = S.vw * 0.985;
+    if (left + w > availR) left = availR - w;
+    const y = (tg.y1 + tg.y2) / 2;
+    return { x: left + w / 2, y, w, h, leftX: left };
+  }
+
+  /* arrow Testing -> Publish: horizontal, tip lands exactly on the box edge */
+  function arrow3Geom() {
+    const s = boxS(), tg = testerGeom(), pg = publishGeom();
+    return placeArrow(els.arrow3, els.a3shaft, els.a3head,
+      tg.x2, pg.y, pg.leftX, pg.y, 0, Math.max(14, s * 0.11));
   }
 
   /* ows anchors (viewport scope) */
@@ -547,6 +572,17 @@ window.MZ = (function () {
       x: tg.center.x, y: tg.center.y,
       width: tg.w0, height: tg.h0, autoAlpha: 0,
     });
+    // publish box: sized + parked, bars prepped for their drop
+    const pg = publishGeom();
+    els.publish.style.width = pg.w + 'px';
+    els.publish.style.height = pg.h + 'px';
+    els.pubLbl.style.fontSize = s * 0.185 + 'px';
+    gsap.set(els.publish, { xPercent: -50, yPercent: -50, x: pg.x, y: pg.y, scale: 1, autoAlpha: 0 });
+    gsap.set(els.pubBars, { y: 0 });
+    gsap.set(els.pubLbl, { yPercent: 115 });
+    arrow3Geom();
+    gsap.set(els.arrow3, { autoAlpha: 0 });
+
     // label centered in the free band under the compressed cluster
     const cg = groupGeom(), cB = encapBounds();
     const cCx = cg.tx + cg.G * (cB.x + cB.w / 2);
@@ -785,7 +821,7 @@ window.MZ = (function () {
     stackedPos, compactLayout, headerLayout,
     midPos, svcStackGeom, boxS, planP, p1, p2,
     encapBounds, groupGeom, groupPt, execGeom, testerGeom,
-    owsCenter, owsTop, arrow1Geom, arrow2Geom,
+    owsCenter, owsTop, arrow1Geom, arrow2Geom, arrow3Geom, publishGeom,
     worksGeom, statsGeom, finaleLayout, ctaGeom,
     boat, placeBoat,
     setLetters, setServiceResting,

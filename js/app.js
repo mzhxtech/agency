@@ -163,7 +163,7 @@
   function applyResting() {
     const t = current;
     const S = MZ.S;
-    MZ.setLetters(t >= 19 ? 'finale' : t >= 9 ? 'header' : 'compact');
+    MZ.setLetters(t >= 20 ? 'finale' : t >= 9 ? 'header' : 'compact');
     MZ.els.logoBox.classList.toggle('hero-live', t >= 0);
 
     if (t <= 7) {
@@ -176,13 +176,13 @@
       else gsap.set(MZ.els.grillWrap, { x: p.x, y: p.y - S.ph * 0.10, scale: 0.8, rotation: 0, autoAlpha: 0 });
     }
 
-    // ows title (viewport scope); hides again once works take over (t >= 15)
+    // ows title (viewport scope); hides again once works take over (t >= 16)
     const oc = MZ.owsCenter(), ot = MZ.owsTop();
-    if (t >= 9 && t <= 14) gsap.set(MZ.els.ows, t >= 10
+    if (t >= 9 && t <= 15) gsap.set(MZ.els.ows, t >= 10
       ? { x: ot.x, y: ot.y, scale: 0.42, autoAlpha: 1 }
       : { x: oc.x, y: oc.y, scale: 1, autoAlpha: 1 });
     else gsap.set(MZ.els.ows, { x: oc.x, y: oc.y, scale: 1, autoAlpha: 0 });
-    MZ.els.owsWords.forEach((w) => gsap.set(w, { yPercent: t >= 9 && t <= 14 ? 0 : 115 }));
+    MZ.els.owsWords.forEach((w) => gsap.set(w, { yPercent: t >= 9 && t <= 15 ? 0 : 115 }));
 
     // divider + left panel merge into full-width section at step >= 9
     gsap.set(MZ.els.divider, { autoAlpha: t >= 9 ? 0 : 1 });
@@ -193,13 +193,13 @@
     // plan
     const s = MZ.boxS();
     const pc = MZ.planP(), a1 = MZ.p1(), p2 = MZ.p2();
-    if (t >= 10 && t <= 14) gsap.set(MZ.els.plan, { x: t >= 11 ? a1.x : pc.x, y: t >= 11 ? a1.y : pc.y, rotation: 0, autoAlpha: 1 });
+    if (t >= 10 && t <= 15) gsap.set(MZ.els.plan, { x: t >= 11 ? a1.x : pc.x, y: t >= 11 ? a1.y : pc.y, rotation: 0, autoAlpha: 1 });
     else gsap.set(MZ.els.plan, { x: -s * 0.5 - 40, y: pc.y, rotation: -160, autoAlpha: 0 });
-    gsap.set(MZ.els.planLbl, { yPercent: t >= 10 && t <= 14 ? 0 : 115 });
+    gsap.set(MZ.els.planLbl, { yPercent: t >= 10 && t <= 15 ? 0 : 115 });
 
     // arrow1 + design
     const a1g = MZ.arrow1Geom();
-    if (t >= 11 && t <= 14) {
+    if (t >= 11 && t <= 15) {
       gsap.set(MZ.els.arrow1, { autoAlpha: 1 });
       gsap.set(MZ.els.a1shaft, { strokeDashoffset: 0 });
       gsap.set(MZ.els.a1head, { autoAlpha: 1, x: 0, y: 0 });
@@ -216,15 +216,15 @@
     // encap + group compression
     const B = MZ.encapBounds();
     const g = MZ.groupGeom();
-    gsap.set(MZ.els.encap, { x: B.x, y: B.y, width: B.w, height: B.h, scale: 1, autoAlpha: t >= 12 && t <= 14 ? 0.95 : 0 });
-    gsap.set(MZ.els.flowGroup, t >= 12 && t <= 14
+    gsap.set(MZ.els.encap, { x: B.x, y: B.y, width: B.w, height: B.h, scale: 1, autoAlpha: t >= 12 && t <= 15 ? 0.95 : 0 });
+    gsap.set(MZ.els.flowGroup, t >= 12 && t <= 15
       ? { x: g.tx, y: g.ty, scale: g.G }
       : { x: 0, y: 0, scale: 1 });
 
     // arrow2 + execution circle
     const a2g = MZ.arrow2Geom();
     const C = MZ.execGeom().C;
-    if (t === 13 || t === 14) {
+    if (t === 13 || t === 14 || t === 15) {
       gsap.set(MZ.els.arrow2, { autoAlpha: 1 });
       gsap.set(MZ.els.a2shaft, { strokeDashoffset: 0 });
       gsap.set(MZ.els.a2head, { autoAlpha: 1, x: 0, y: 0 });
@@ -238,47 +238,64 @@
       gsap.set(MZ.els.execLbl, { yPercent: 115 });
     }
 
-    // testing (growing rectangle): full only at the final flow step
+    // testing (growing rectangle): full only at the final cluster step
     const tg = MZ.testerGeom();
-    if (t === 14) gsap.set(MZ.els.tester,
+    if (t === 15) gsap.set(MZ.els.tester,
       { x: tg.center.x, y: tg.center.y, width: tg.wF, height: tg.hF, scaleX: 1, scaleY: 1, autoAlpha: 1 });
     else gsap.set(MZ.els.tester,
       { x: tg.center.x, y: tg.center.y, width: tg.w0, height: tg.h0, scaleX: 1, scaleY: 1, autoAlpha: 0 });
-    gsap.set(MZ.els.testerLbl, { yPercent: t === 14 ? 0 : 115 });
+    gsap.set(MZ.els.testerLbl, { yPercent: t === 15 ? 0 : 115 });
 
-    // ---------- selected works (steps 15..17) ----------
+    // ---------- publish (step 15) ----------
+    const pg = MZ.publishGeom();
+    const pubOn = t === 15;
+    const a3g = MZ.arrow3Geom();
+    gsap.set(MZ.els.publish, { xPercent: -50, yPercent: -50, x: pg.x, y: pg.y, scale: 1, autoAlpha: pubOn ? 1 : 0 });
+    gsap.set(MZ.els.pubBars, { y: 0 });
+    gsap.set(MZ.els.pubLbl, { yPercent: pubOn ? 0 : 115 });
+    if (pubOn) {
+      gsap.set(MZ.els.arrow3, { autoAlpha: 1 });
+      gsap.set(MZ.els.a3shaft, { strokeDashoffset: 0 });
+      gsap.set(MZ.els.a3head, { autoAlpha: 1, x: 0, y: 0 });
+    } else {
+      gsap.set(MZ.els.arrow3, { autoAlpha: 0 });
+      gsap.set(MZ.els.a3shaft, { strokeDashoffset: a3g.len });
+      gsap.set(MZ.els.a3head, { autoAlpha: 0, x: -9, y: 0 });
+    }
+
+    // ---------- selected works (steps 16..18) ----------
     const wg = MZ.worksGeom();
     MZ.els.projs.forEach((pr, k) => {
-      const active = t === 15 + k;
+      const active = t === 16 + k;
       gsap.set(pr.el, { x: wg.cC.x, y: wg.cC.y, rotation: 0, scale: 1, autoAlpha: active ? 1 : 0 });
     });
-    const worksOn = t >= 15 && t <= 17;
+    const worksOn = t >= 16 && t <= 18;
     gsap.set(MZ.els.worksTitle, { x: wg.tC.x, y: wg.tC.y, scale: 1, autoAlpha: worksOn ? 1 : 0 });
     gsap.set(MZ.els.worksWords, { yPercent: worksOn ? 0 : 115 });
     MZ.els.idxNums.forEach((n, k) => {
-      const active = t === 15 + k;
+      const active = t === 16 + k;
       gsap.set(n, { x: wg.nC.x, y: wg.nC.y, autoAlpha: active ? 1 : 0 });
     });
 
-    // ---------- by the numbers (step 18) ----------
+    // ---------- by the numbers (step 19) ----------
     const sg = MZ.statsGeom();
-    gsap.set(MZ.els.statOver, { x: sg.ol.x, y: sg.ol.y, autoAlpha: t >= 18 && t <= 18 ? 1 : 0 });
+    gsap.set(MZ.els.statOver, { x: sg.ol.x, y: sg.ol.y, autoAlpha: t >= 19 && t <= 19 ? 1 : 0 });
     MZ.els.stats.forEach((st, k) => {
-      const active = t >= 18 && t <= 18;
+      const active = t >= 19 && t <= 19;
       gsap.set(st.el, { x: sg.xs[k], y: sg.y, autoAlpha: active ? 1 : 0 });
       gsap.set(st.wi, { yPercent: active ? 0 : 130 });
       st.n.textContent = active ? String(MZ.data.stats[k].n) : '0';
       gsap.set(st.cap, { y: 0, autoAlpha: active ? 1 : 0 });
     });
 
-    // ---------- finale (step 19) ----------
+    // ---------- finale (step 20) ----------
     const cg = MZ.ctaGeom();
-    gsap.set(MZ.els.cta1, { x: cg.l1.x, y: cg.l1.y, autoAlpha: t >= 19 ? 1 : 0 });
-    gsap.set(MZ.els.cta2, { x: cg.l2.x, y: cg.l2.y, autoAlpha: t >= 19 ? 1 : 0 });
-    gsap.set(MZ.els.cta1Words, { yPercent: t >= 19 ? 0 : 120 });
-    gsap.set(MZ.els.cta2Words, { yPercent: t >= 19 ? 0 : 120 });
-    gsap.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, scale: 1, autoAlpha: t >= 19 ? 1 : 0 });
-    gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 19 ? 1 : 0 });
+    gsap.set(MZ.els.cta1, { x: cg.l1.x, y: cg.l1.y, autoAlpha: t >= 20 ? 1 : 0 });
+    gsap.set(MZ.els.cta2, { x: cg.l2.x, y: cg.l2.y, autoAlpha: t >= 20 ? 1 : 0 });
+    gsap.set(MZ.els.cta1Words, { yPercent: t >= 20 ? 0 : 120 });
+    gsap.set(MZ.els.cta2Words, { yPercent: t >= 20 ? 0 : 120 });
+    gsap.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, scale: 1, autoAlpha: t >= 20 ? 1 : 0 });
+    gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 20 ? 1 : 0 });
 
     syncIdle(t);
   }

@@ -264,8 +264,39 @@ window.MZT = (function () {
     return tl;
   }
 
+  // 14 -> 15: box pops in wherever space allows right of the Testing rect;
+  // the same arrow draws from Testing to its left edge, then a pile of bars
+  // drops from the top of the box and stacks, with "Publish" landing under it
+  function buildPublish() {
+    const tl = gsap.timeline({ paused: true });
+    const a3 = MZ.arrow3Geom();
+    const pg = MZ.publishGeom();
+
+    tl.set(MZ.els.publish, { xPercent: -50, yPercent: -50, immediateRender: false }, 0);
+    tl.set(MZ.els.pubBars, { y: 0, autoAlpha: 0, immediateRender: false }, 0);
+    tl.fromTo(MZ.els.publish,
+      { x: pg.x, y: pg.y, scale: 0.62, autoAlpha: 0 },
+      { x: pg.x, y: pg.y, scale: 1, autoAlpha: 1, duration: 0.75, ease: 'back.out(1.5)', immediateRender: false }, 0);
+
+    tl.set(MZ.els.arrow3, { autoAlpha: 1, immediateRender: false }, 0.3);
+    tl.fromTo(MZ.els.a3shaft, { strokeDashoffset: a3.len }, { strokeDashoffset: 0, duration: 0.48, ease: 'power2.out', immediateRender: false }, 0.32);
+    tl.fromTo(MZ.els.a3head,
+      { autoAlpha: 0, x: -9 },
+      { autoAlpha: 1, x: 0, duration: 0.3, ease: 'back.out(2)', immediateRender: false }, 0.74);
+
+    // bars cascade from above the box and pile downward, one per beat
+    MZ.els.pubBars.forEach((bar, i) => {
+      tl.fromTo(bar,
+        { y: -(pg.h * 1.02), autoAlpha: 0 },
+        { y: 0, autoAlpha: 1, duration: 0.52, ease: 'power2.in', immediateRender: false },
+        1.05 + i * 0.17);
+    });
+    tl.fromTo(MZ.els.pubLbl, { yPercent: 115 }, { yPercent: 0, duration: 0.55, ease: 'power4.out', immediateRender: false }, 1.62);
+    return tl;
+  }
+
   /* ---------- lazy cache ---------- */
-  // 14 -> 15: tester contracts, flow fades, "Selected Works" + card 01 arrive
+  // 15 -> 16: tester contracts, flow fades, "Selected Works" + card 01 arrive
   function buildWorksIn() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
@@ -273,7 +304,7 @@ window.MZT = (function () {
     const tg = MZ.testerGeom();
 
     tl.to(MZ.els.tester, { width: tg.w0, height: tg.h0, autoAlpha: 0, duration: 0.6, ease: 'power2.in' }, 0);
-    tl.to([MZ.els.plan, MZ.els.design, MZ.els.exec, MZ.els.encap, MZ.els.arrow1, MZ.els.arrow2], { autoAlpha: 0, duration: 0.45 }, 0.05);
+    tl.to([MZ.els.plan, MZ.els.design, MZ.els.exec, MZ.els.encap, MZ.els.arrow1, MZ.els.arrow2, MZ.els.publish, MZ.els.arrow3], { autoAlpha: 0, duration: 0.45 }, 0.05);
     tl.to(MZ.els.ows, { scale: 0.88, autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 0.1);
     MZ.els.owsWords.forEach((w, i) => {
       tl.to(w, { yPercent: -140, duration: 0.5, ease: 'power3.in' }, 0.12 + i * 0.05);
@@ -317,7 +348,7 @@ window.MZT = (function () {
     return tl;
   }
 
-  // 17 -> 18: works exit, "By the numbers" — stats punch in with count-up
+  // 18 -> 19: works exit, "By the numbers" — stats punch in with count-up
   function buildStatsIn() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
@@ -352,7 +383,7 @@ window.MZT = (function () {
     return tl;
   }
 
-  // 18 -> 19: finale — MZHX reassembles center, CTA, contact pill, footer
+  // 19 -> 20: finale — MZHX reassembles center, CTA, contact pill, footer
   function buildFinale() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
@@ -402,10 +433,11 @@ window.MZT = (function () {
         : i === 11 ? buildEncap()
         : i === 12 ? buildExec()
         : i === 13 ? buildTester()
-        : i === 14 ? buildWorksIn()
-        : i === 15 ? buildWorksNext(1)
-        : i === 16 ? buildWorksNext(2)
-        : i === 17 ? buildStatsIn()
+        : i === 14 ? buildPublish()
+        : i === 15 ? buildWorksIn()
+        : i === 16 ? buildWorksNext(1)
+        : i === 17 ? buildWorksNext(2)
+        : i === 18 ? buildStatsIn()
         : buildFinale();
     }
     return cache[i];
