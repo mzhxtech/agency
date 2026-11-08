@@ -296,7 +296,7 @@ window.MZ = (function () {
   }
 
   function compactLayout() {
-    const s = clamp((S.vw * 0.155) / els.wordSpan, 0.08, 0.55);
+    const s = clamp((S.vw * 0.195) / els.wordSpan, 0.08, 0.55);
     const startX = S.vw * 0.045;
     const y = S.lh * 0.5;
     return {
@@ -310,7 +310,7 @@ window.MZ = (function () {
   }
 
   function headerLayout() {
-    const s = clamp((S.vw * 0.115) / els.wordSpan, 0.05, 0.4);
+    const s = clamp((S.vw * 0.15) / els.wordSpan, 0.05, 0.4);
     const startX = S.vw * 0.045;
     const y = S.vh * 0.075;
     return {
@@ -424,7 +424,7 @@ window.MZ = (function () {
 
   /* finale: big centered MZHX + CTA lines + contact pill */
   function finaleLayout() {
-    const s = clamp((S.vw * 0.30) / els.wordSpan, 0.12, 0.6);
+    const s = clamp((S.vw * 0.34) / els.wordSpan, 0.12, 0.6);
     const startX = S.vw / 2 - (s * els.wordSpan) / 2;
     const y = S.vh * 0.40;
     return {
