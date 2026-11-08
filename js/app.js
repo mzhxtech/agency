@@ -290,7 +290,7 @@
     current = 0;
     busy = false;
     MZ.els.logoBox.classList.add('hero-live');   // X pendulum
-    if (!mzhxCycle) mzhxCycle = MZ.makeGlowWave(MZ.els.letters, 0.42);   // smooth traveling glow
+    if (!mzhxCycle) mzhxCycle = MZ.makeGlowWave(MZ.els.letters, 0.6);   // smooth traveling glow
     mzhxCycle.start();
     syncIdle(0);
     pump();
