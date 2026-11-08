@@ -686,7 +686,7 @@ window.MZ = (function () {
     function anchorRects() {
       return glyphs.map((g2) => {
         const r = g2.rect.getBoundingClientRect();
-        return { x: r.left + r.width / 2, y: r.top + r.height / 2, h: Math.max(r.height, r.width) };
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: Math.max(r.height, r.width) };
       });
     }
 
@@ -718,7 +718,8 @@ window.MZ = (function () {
           ? '0 0 ' + (5 + 21 * t).toFixed(1) + 'px rgba(255,255,255,' + (0.35 * t).toFixed(3) + ')'
           : 'none';
       }
-      // ---- the little light-carrier between handoff partners ----
+      // ---- the extracted shadow: peels off the fading letter, drifts facing the
+      // next one, decelerates and dissolves while it is still en-route ----
       const kk = proxy.k;
       const rawA = Math.floor(kk - 0.15);          // handoff window starts 15% before the next center
       const from = ((rawA % n) + n) % n;
@@ -727,15 +728,27 @@ window.MZ = (function () {
       if (u > 0.002 && u < 0.998 && mote) {
         const cs = anchorRects();
         const P0 = cs[from], P1 = cs[to];
-        const hop = Math.min(64, Math.max(16, P0.h * 0.55));
-        const mx = (P0.x + P1.x) / 2;
-        const my = Math.min(P0.y, P1.y) - hop;     // arcing over the glyph tops
-        const x = (1 - u) * (1 - u) * P0.x + 2 * (1 - u) * u * mx + u * u * P1.x;
-        const y = (1 - u) * (1 - u) * P0.y + 2 * (1 - u) * u * my + u * u * P1.y;
+        const dx = P1.x - P0.x, dy = P1.y - P0.y;
+        const dist = Math.max(1, Math.hypot(dx, dy));
+        const nx = dx / dist, ny = dy / dist;
+        // emit from the glyph's edge facing the target (never deeper than mid-gap),
+        // so the wisp is visible the moment it peels off
+        const off = Math.min(P0.w * 0.55, dist * 0.42);
+        const S0 = { x: P0.x + nx * off, y: P0.y + ny * off };
+        const hop = Math.min(64, Math.max(18, P0.h * 0.6));
+        const mx = (S0.x + P1.x) / 2;
+        const my = Math.min(S0.y, P1.y) - hop;     // arcing over the glyph tops
+        const tt = u * u * (3 - 2 * u);            // easeInOut pull: clings, lifts, settles
+        const bx = (1 - tt) * (1 - tt) * S0.x + 2 * (1 - tt) * tt * mx + tt * tt * P1.x;
+        const by = (1 - tt) * (1 - tt) * S0.y + 2 * (1 - tt) * tt * my + tt * tt * P1.y;
+        const tt2 = Math.min(0.999, tt + 0.06);
+        const bx2 = (1 - tt2) * (1 - tt2) * S0.x + 2 * (1 - tt2) * tt2 * mx + tt2 * tt2 * P1.x;
+        const by2 = (1 - tt2) * (1 - tt2) * S0.y + 2 * (1 - tt2) * tt2 * my + tt2 * tt2 * P1.y;
         gsap.set(mote, {
-          x, y,
-          scale: 0.55 + 0.5 * Math.sin(u * Math.PI),
-          autoAlpha: Math.pow(Math.sin(u * Math.PI), 0.85) * 0.95,
+          x: bx, y: by,
+          rotation: Math.atan2(by2 - by, bx2 - bx) * 180 / Math.PI * 0.45,  // wisp leans into its drift
+          scale: 0.6 + 0.8 * u,                                      // dispersing as it travels
+          autoAlpha: 0.66 * Math.pow(1 - u, 1.1),                    // holds light, then dissolves
         });
       } else if (mote) {
         gsap.set(mote, { autoAlpha: 0 });

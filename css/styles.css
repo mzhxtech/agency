@@ -74,15 +74,18 @@ html, body {
   opacity: 0;
 }
 
-/* the little light-carrier arcing between letters (the moon-mote) */
+/* the extracted shadow-wisp peeling off a letter toward the next one */
 .glowMote {
   position: absolute;
   left: 0; top: 0;
   z-index: 7;
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,.95) 0%, rgba(255,255,255,.55) 34%, rgba(255,255,255,0) 70%);
-  box-shadow: 0 0 14px rgba(255,255,255,.65), 0 0 30px rgba(255,255,255,.22);
+  width: 52px; height: 34px;
+  background:
+    radial-gradient(20px 15px at 28% 58%, rgba(255,255,255,.55), rgba(255,255,255,0) 70%),
+    radial-gradient(13px 11px at 60% 40%, rgba(255,255,255,.38), rgba(255,255,255,0) 68%),
+    radial-gradient(30px 20px at 48% 62%, rgba(255,255,255,.18), rgba(255,255,255,0) 74%);
+  filter: blur(1.2px);
+  transform-origin: 50% 50%;
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
