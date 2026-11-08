@@ -91,7 +91,7 @@ window.MZ = (function () {
       });
       anchor.appendChild(inner);
       els.svcLayer.appendChild(anchor);
-      services.push({ anchor, inner, words: Array.from(inner.querySelectorAll('.wi')), midFont: 40 });
+      services.push({ anchor, inner, words: Array.from(inner.querySelectorAll('.wi')), font: 40 });
     });
 
     // "Your Idea to Launch" letter spans
@@ -275,9 +275,11 @@ window.MZ = (function () {
 
   /* recompute fitted fonts (boot + resize) */
   function fitAll() {
-    const midBase = Math.min(S.pw * 0.088, S.ph * 0.115);
-    services.forEach((sv) => { sv.midFont = fitText(sv.inner, midBase, S.pw * 0.84); });
-    els.yitlFont = fitText(els.yitlInner, Math.min(S.pw * 0.075, S.ph * 0.092), S.pw * 0.86);
+    // right-column stack rows (7 services + YITL): equal spacing, width-fitted
+    const sg = svcStackGeom();
+    const baseF = sg.gap * 0.52;
+    services.forEach((sv) => { sv.font = fitText(sv.inner, baseF, sg.colW * 0.92); });
+    els.yitlFont = fitText(els.yitlInner, baseF, sg.colW * 0.92);
     els.grillFont = fitText(els.grill, Math.min(S.pw * 0.098, S.ph * 0.125), S.pw * 0.86);
     els.owsFont = fitText(els.owsInner, Math.min(S.vw * 0.058, S.vh * 0.115), S.vw * 0.9);
   }
@@ -296,7 +298,7 @@ window.MZ = (function () {
   }
 
   function compactLayout() {
-    const s = clamp((S.vw * 0.195) / els.wordSpan, 0.08, 0.55);
+    const s = clamp((S.vw * 0.23) / els.wordSpan, 0.08, 0.55);
     const startX = S.vw * 0.045;
     const y = S.lh * 0.5;
     return {
@@ -323,16 +325,19 @@ window.MZ = (function () {
     };
   }
 
-  /* ---------------- right stage geometry (services stay panel-based) ---------------- */
-  function topSlots(n) {
-    const yTop = S.ph * 0.075;
-    const area = S.ph * 0.27;
-    const slotH = area / n;
-    const font = Math.min(slotH * 0.62, S.pw * 0.036);
-    return Array.from({ length: n }, (_, i) => ({ y: yTop + slotH * (i + 0.5), font }));
-  }
-
+  /* ---------------- right stage geometry ---------------- */
   const midPos = () => ({ x: S.pw * 0.5, y: S.ph * 0.52 });
+
+  /* right-column stack: 7 service rows + YITL fill the panel height with
+     equal spacing — the column sits right of the river and uses its full width */
+  function svcStackGeom() {
+    const N = 8;                                   // 7 services + YITL
+    const y0 = S.ph * 0.115, y1 = S.ph * 0.885;
+    const gap = (y1 - y0) / (N - 1);
+    const cx = S.pw * 0.555;                       // column center (panel-local)
+    const colW = S.pw * 0.74;                      // usable width (panel-local)
+    return { N, gap, cx, colW, rowY(i) { return y0 + gap * i; } };
+  }
 
   /* ---------------- flow geometry (full-width viewport scope) ---------------- */
   const boxS = () => Math.min(S.vw * 0.125, S.vh * 0.165);
@@ -631,7 +636,8 @@ window.MZ = (function () {
     });
   }
 
-  /* services resting layout for step t (0..7); t>=8 => fully hidden */
+  /* services resting layout for step t: rows 0..t stay stacked in the right column
+     (t===7 adds YITL as the 8th row); t >= 8 => fully hidden */
   function setServiceResting(t) {
     const visible = t >= 0 && t <= 7;
     gsap.set(els.svcLayer, {
@@ -639,23 +645,20 @@ window.MZ = (function () {
       clipPath: visible ? 'circle(140% at 50% 52%)' : 'circle(0% at 50% 52%)',
       scale: visible ? 1 : 0.4,
     });
-    if (!visible) return;
-    const topCount = t === 7 ? 7 : t;
-    const slots = topSlots(Math.max(1, topCount));
-    const m = midPos();
-    for (let i = 0; i < topCount; i++) {
-      gsap.set(services[i].anchor, { x: m.x, y: slots[i].y, fontSize: slots[i].font, autoAlpha: 1 });
-    }
-    if (t <= 6) {
-      gsap.set(services[t].anchor, { x: m.x, y: m.y, fontSize: services[t].midFont, autoAlpha: 1 });
-    }
-    if (t === 7) {
-      gsap.set(els.yitl, { x: m.x, y: S.ph * 0.80, scale: 1, rotation: 0, autoAlpha: 1 });
+    const sg = svcStackGeom();
+    services.forEach((sv, i) => {
+      const shown = visible && i <= Math.min(t, 6);
+      gsap.set(sv.anchor, shown
+        ? { x: sg.cx, y: sg.rowY(i), autoAlpha: 1 }
+        : { x: sg.cx, y: S.ph + 140, autoAlpha: 0 });
+      sv.inner.querySelectorAll('.w').forEach((w) => gsap.set(w, { x: 0, y: 0 }));
+      sv.words.forEach((w) => gsap.set(w, { yPercent: shown ? 0 : 115 }));
+    });
+    // YITL lives on the 8th stack row, revealed at step 7
+    if (visible && t === 7) {
+      gsap.set(els.yitl, { x: sg.cx, y: sg.rowY(7), scale: 1, rotation: 0, autoAlpha: 1 });
     } else {
-      gsap.set(els.yitl, { autoAlpha: 0, scale: 0.35, y: S.ph * 0.71 });
-    }
-    for (let i = Math.max(topCount, t <= 6 ? t + 1 : 7); i < services.length; i++) {
-      gsap.set(services[i].anchor, { autoAlpha: 0, y: S.ph });
+      gsap.set(els.yitl, { autoAlpha: 0, x: sg.cx, y: sg.rowY(7), scale: 0.35 });
     }
   }
 
@@ -780,7 +783,7 @@ window.MZ = (function () {
     S, els, services, data, MAXSTEP,
     buildDOM, metrics, fitAll, measureLetters, prepStatic,
     stackedPos, compactLayout, headerLayout,
-    topSlots, midPos, boxS, planP, p1, p2,
+    midPos, svcStackGeom, boxS, planP, p1, p2,
     encapBounds, groupGeom, groupPt, execGeom, testerGeom,
     owsCenter, owsTop, arrow1Geom, arrow2Geom,
     worksGeom, statsGeom, finaleLayout, ctaGeom,

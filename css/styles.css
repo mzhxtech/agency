@@ -168,6 +168,7 @@ html, body {
   overflow: hidden;
   vertical-align: bottom;
   line-height: 1.15;
+  will-change: transform;
 }
 .svc .w + .w, #owsText .w + .w, #grill .w + .w { margin-left: 0.28em; }
 .svc .wi, #owsText .wi, #grill .wi {

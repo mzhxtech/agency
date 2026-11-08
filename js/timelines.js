@@ -39,14 +39,9 @@ window.MZT = (function () {
     boatTo(tl, 0, 0.05, flyEnd + 0.75, 1.3, 'power1.inOut');      // boat peeks in from the top
     tl.fromTo(MZ.els.boat, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, immediateRender: false }, flyEnd + 0.85);
 
-    // 4) first service: "Websites" drops from top, "Development" unveils word by word
-    const sv0 = MZ.services[0];
-    const m = MZ.midPos();
-    tl.set(sv0.anchor, { x: m.x, y: m.y, autoAlpha: 1, immediateRender: false }, flyEnd + 0.45);
-    tl.fromTo(sv0.words[0], { yPercent: -135 }, { yPercent: 0, duration: 0.8, ease: 'bounce.out', immediateRender: false }, flyEnd + 0.5);
-    sv0.words.slice(1).forEach((w, j) => {
-      tl.fromTo(w, { yPercent: 115 }, { yPercent: 0, duration: 0.6, ease: 'power4.out', immediateRender: false }, flyEnd + 1.35 + j * 0.14);
-    });
+    // 4) first stack row splash: "Websites" falls from the top viewport,
+    //    "Development" flies in from the right and joins it with a double bump
+    stageSplash(tl, MZ.services[0], 0, flyEnd + 0.5);
 
     return tl;
   }
@@ -65,41 +60,70 @@ window.MZT = (function () {
 
   /* ---------- helper builders ---------- */
 
-  // step i -> i+1 for services i in 0..5: middle goes to a top slot, next rises from bottom
+  // step i -> i+1 for services i in 0..5: the incoming row stages into the right-column
+  // stack below the previous ones (nothing moves — the rows accumulate)
   function buildSvcAdvance(i) {
     const S = MZ.S;
     const tl = gsap.timeline({ paused: true });
-    const out = MZ.services[i];
     const inc = MZ.services[i + 1];
-    const slots = MZ.topSlots(i + 1);
-    const m = MZ.midPos();
 
     boatTo(tl, BOATP[i], BOATP[i + 1], 0, 1.35, 'power1.inOut');
-    tl.to(out.anchor, { x: m.x, y: slots[i].y, fontSize: slots[i].font, opacity: 0.55, duration: 1.0, ease: 'power3.inOut' }, 0);
-    for (let j = 0; j < i; j++) {
-      tl.to(MZ.services[j].anchor, { y: slots[j].y, fontSize: slots[j].font, duration: 1.0, ease: 'power3.inOut' }, 0);
-    }
-
-    tl.fromTo(inc.anchor,
-      { x: m.x, y: m.y + S.ph * 0.55, autoAlpha: 0 },
-      { x: m.x, y: m.y, autoAlpha: 1, duration: 0.95, ease: 'power3.out', immediateRender: false }, 0.12);
-    inc.words.forEach((w, j) => {
-      tl.fromTo(w, { yPercent: 115 }, { yPercent: 0, duration: 0.6, ease: 'power4.out', immediateRender: false }, 0.55 + j * 0.11);
-    });
+    stageRise(tl, inc, i + 1, 0.25);
     return tl;
   }
 
-  // 6 -> 7: "Your Idea to Launch" punches in at the bottom
+  /* the first row is the splash: the first word falls from above the viewport,
+     every following word flies in from beyond the right panel edge and JOINS the
+     line with a double bump (elastic settle). Reversing undoes it exactly. */
+  function stageSplash(tl, sv, rowIdx, at) {
+    const S = MZ.S;
+    const sg = MZ.svcStackGeom();
+    const panelL = S.vw - S.pw;                    // panel-local == viewport-y (panel top = 0)
+    const anchorWx = panelL + sg.cx;               // the row anchor's absolute x
+    tl.set(sv.anchor, { x: sg.cx, y: sg.rowY(rowIdx), autoAlpha: 1, immediateRender: false }, at);
+    sv.words.forEach((wi, j) => {
+      const mask = wi.parentNode;                  // .w (the overflow-hidden mask)
+      const t0 = at + j * 0.2;
+      tl.set(wi, { yPercent: 0, immediateRender: false }, t0);
+      if (j === 0) {
+        // drop from above the viewport top; gravity-ease intrusion
+        const drop = sg.rowY(rowIdx) + mask.offsetHeight * 1.25;
+        const dur = 0.24 + drop / 1600;
+        tl.fromTo(mask, { y: -drop }, { y: 0, duration: dur, ease: 'power2.in', immediateRender: false }, t0);
+      } else {
+        // enter from beyond the right edge, lands with a two-bump elastic
+        const bLeft = anchorWx - sv.inner.offsetWidth / 2;   // .bcenter left incl. its -50% translate
+        const wLeft = bLeft + mask.offsetLeft;               // this .w's left edge (absolute)
+        const dx = (panelL + S.pw) - wLeft + mask.offsetWidth + 42;
+        tl.fromTo(mask, { x: dx }, { x: 0, duration: 0.95, ease: 'elastic.out(1, 0.42)', immediateRender: false }, t0);
+      }
+    });
+  }
+
+  /* every later row rises from below the viewport bottom all the way up to its
+     slot — the whole line visibly travels, so the .wi masks open at the start */
+  function stageRise(tl, sv, rowIdx, at) {
+    const S = MZ.S;
+    const sg = MZ.svcStackGeom();
+    tl.set(sv.anchor, { x: sg.cx, immediateRender: false }, at);
+    tl.fromTo(sv.anchor,
+      { y: S.ph + 120, autoAlpha: 0 },
+      { y: sg.rowY(rowIdx), autoAlpha: 1, duration: 1.1, ease: 'power3.out', immediateRender: false }, at);
+    sv.words.forEach((wi) => {
+      tl.set(wi, { yPercent: 0, immediateRender: false }, at);
+    });
+  }
+
+  // 6 -> 7: "Your Idea to Launch" punches in as the 8th stack row
   function buildYitl() {
     const S = MZ.S;
     const tl = gsap.timeline({ paused: true });
-    const m = MZ.midPos();
-    const y = S.ph * 0.80;
+    const sg = MZ.svcStackGeom();
+    const x = sg.cx, y = sg.rowY(7);
     boatTo(tl, BOATP[6], BOATP[7], 0, 1.5, 'power1.inOut');
     tl.fromTo(MZ.els.yitl,
-      { x: m.x, y: y - S.ph * 0.09, scale: 0.35, rotation: -8, autoAlpha: 0 },
-      { x: m.x, y: y, scale: 1, rotation: 0, autoAlpha: 1, duration: 0.95, ease: 'elastic.out(1, 0.55)', immediateRender: false }, 0.05);
-    tl.to(MZ.services[6].anchor, { opacity: 0.85, duration: 0.5, ease: 'power2.out' }, 0.1);
+      { x, y: y - S.ph * 0.09, scale: 0.35, rotation: -8, autoAlpha: 0 },
+      { x, y, scale: 1, rotation: 0, autoAlpha: 1, duration: 0.95, ease: 'elastic.out(1, 0.55)', immediateRender: false }, 0.05);
     return tl;
   }
 
