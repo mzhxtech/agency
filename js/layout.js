@@ -25,7 +25,11 @@ window.MZ = (function () {
     ],
     cta1: ['Book', 'a', 'free', '30', 'minute', 'scoping', 'call,'],
     cta2: ['or', 'get', 'a', 'free', 'audit', 'of', 'your', 'current', 'site.'],
-    pledges: ['Direct access to developer', 'Weekly Demos', 'Transparent Process'],
+    pledges: [
+      { txt: 'Direct access to the developer' },
+      { txt: 'Weekly demos' },
+      { txt: 'Transparency' },
+    ],
     faqs: [
       { q: 'How much does a website cost?', a: "It depends on scope. A simple business website with 5 to 8 pages costs less than a booking system, dashboard, or e-commerce store. After a free scoping call, we give you a fixed quote so there are no surprises later." },
       { q: 'How long will it take?', a: 'A simple business website takes 1 to 2 weeks. A website with booking, payments, or a custom dashboard takes 3 to 6 weeks. An MVP with AI features or user accounts usually takes 4 to 8 weeks. We share a timeline before we start and show you a demo every week.' },
@@ -36,7 +40,7 @@ window.MZ = (function () {
     ],
     foot: '© MZHX Studio — slow-grilled w/ intent · Dribbble · GitHub · X',
   };
-  const MAXSTEP = 24;      // resting steps: 0..7 services, 8 grill, 9 ows, 10..16 flow (15 publish, 16 feedback loop), 17..20 works (4 projects), 21 trust, 22 pledges, 23 faqs, 24 finale/CTA
+  const MAXSTEP = 26;      // resting steps: 0..7 services, 8 grill, 9 ows, 10..16 flow (15 publish, 16 feedback loop), 17..20 works (4 projects), 21 trust, 22..24 pledge rows (one per scroll), 25 faqs, 26 finale/CTA
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -195,26 +199,74 @@ window.MZ = (function () {
       return { a, h };
     };
     const tw1 = mkTrust('trust1', 'TRUST', 'trustW');
-    const tw2 = mkTrust('trust2', 'THE', 'trustW trustThe');
+    const tw2 = mkTrust('trust2', 'THE', 'trustW');
     const tw3 = mkTrust('trust3', 'PROCESS', 'trustW');
     els.trust1 = tw1.a; els.trust2 = tw2.a; els.trust3 = tw3.a;
     els.trust1Inner = tw1.h; els.trust2Inner = tw2.h; els.trust3Inner = tw3.h;
     els.trustEls = [els.trust1, els.trust2, els.trust3];
     els.trustInners = [els.trust1Inner, els.trust2Inner, els.trust3Inner];
 
-    // ---------- pledge slabs ("/ Direct access to developer", ...) ----------
+    // ---------- pledge blocks: borderless text rows stacked vertically ----------
+    // hooks per row for the entrance effects: row 1 = scramble (plain text,
+    // rewritten per frame), rows 2/3 = char spans for the reveal wave, row 3
+    // also gets a 3x5 dot grid for the stagger-grid pulse
+    const splitChars = (host, txt) => {
+      host.textContent = '';
+      const out = [];
+      for (const ch of txt) {
+        const sp = document.createElement('span');
+        sp.style.display = 'inline-block';
+        sp.style.whiteSpace = 'pre';
+        sp.textContent = ch;
+        host.appendChild(sp);
+        out.push(sp);
+      }
+      return out;
+    };
+    const splitWordChars = (host, txt) => {  // words stay whole so the paragraph wraps normally
+      host.textContent = '';
+      const out = [];
+      const words = txt.split(/ +/);
+      words.forEach((w, wi) => {
+        if (wi) host.appendChild(document.createTextNode(' '));
+        const wsp = document.createElement('span');
+        wsp.style.display = 'inline-block';
+        wsp.style.whiteSpace = 'nowrap';
+        for (const ch of w) {
+          const sp = document.createElement('span');
+          sp.style.display = 'inline-block';
+          sp.textContent = ch;
+          wsp.appendChild(sp);
+          out.push(sp);
+        }
+        host.appendChild(wsp);
+      });
+      return out;
+    };
     els.pledges = data.pledges.map((t, i) => {
       const a = document.createElement('div');
       a.className = 'posbase'; a.id = 'pledge' + (i + 1);
       const c = document.createElement('span');
       c.className = 'pledge bcenter';
       const lbl = document.createElement('span'); lbl.className = 'pbl';
-      const sl = document.createElement('b'); sl.textContent = '/';
-      lbl.appendChild(sl);
-      lbl.appendChild(document.createTextNode(' ' + t));
-      c.appendChild(lbl); a.appendChild(c);
+      if (i === 0) {                              // row 1 gets the stagger-grid pulse: chars in a 2x15 tile grid
+        lbl.classList.add('pgrid');
+        lbl.style.gridTemplateColumns = 'repeat(15, auto)';
+      }
+      lbl.textContent = t.txt;
+      c.appendChild(lbl);
+      let desc = null;
+      if (t.desc) {
+        desc = document.createElement('span'); desc.className = 'pbd';
+        desc.textContent = t.desc;
+        c.appendChild(desc);
+      }
+      let charsLbl = null, charsDesc = null;
+      if (i <= 1) charsLbl = splitChars(lbl, t.txt);   // rows 1 (grid) + 2 (wave); row 3 stays plain for the scramble
+      if (desc) charsDesc = splitWordChars(desc, t.desc);
+      a.appendChild(c);
       els.nextLayer.appendChild(a);
-      return { el: a, box: c, lbl };
+      return { el: a, box: c, lbl, desc, finalTxt: t.txt, charsLbl, charsDesc };
     });
 
     // ---------- FAQ grid: caption + two flex rows of toggle cells ----------
@@ -602,28 +654,25 @@ window.MZ = (function () {
     const y = S.vh * 0.485;
     const fs = Math.min(S.vw * 0.062, S.vh * 0.135);
     const gap = S.vw * 0.02;
-    const upY = S.vh * 0.16;                                   // lifted position over the pledges
-    const upS = 0.72;                                          // shrink while lifted
     const w = els.trustW || [0, 0, 0];
     const tot = w[0] + gap + w[1] + gap + w[2];
     const x0 = S.vw * 0.5 - tot / 2;
     return {
-      y, fs, gap, upY, upS,
+      y, fs, gap,
       cx: [x0 + w[0] / 2, x0 + w[0] + gap + w[1] / 2, x0 + tot - w[2] / 2],
     };
   }
 
-  /* pledge slabs: three tilted boxes rising under the lifted wordmark;
-     widths are measured at prep (fonts) and parked in S.pledX */
+  /* pledge blocks: borderless text rows stacked straight under the wordmark;
+     the wordmark itself does not move or restyle when the blocks appear */
   function pledGeom() {
-    const pf = Math.min(S.vw * 0.0165, S.vh * 0.032);
-    const padX = pf * 1.55;
-    const h = pf * 2.5;
+    const pf = Math.min(S.vw * 0.0165, S.vh * 0.032);        // heading font
+    const df = Math.min(S.vw * 0.0122, S.vh * 0.019);        // description font
+    const w = S.vw * 0.6;                                     // block width
     return {
-      pf, padX, h,
-      y: S.vh * 0.615,
-      gap: Math.max(24, S.vw * 0.022),
-      rots: [-2.5, 2, -1.75],
+      pf, df, w,
+      x: S.vw / 2,
+      ys: [S.vh * 0.625, S.vh * 0.755, S.vh * 0.875],
     };
   }
 
@@ -841,21 +890,13 @@ window.MZ = (function () {
       gsap.set(el, { x: tgm.cx[i], y: tgm.y, scale: 1, autoAlpha: 0 });
     });
 
-    // pledge slabs: label font, box sizing, centered row (centers parked in S.pledX)
+    // pledge blocks: fonts + block width; stacked straight under the wordmark
     const pgm = pledGeom();
-    S.pledX = [];
-    const pw = els.pledges.map((pb) => {
-      pb.lbl.style.fontSize = pgm.pf + 'px';
-      const bw = pb.lbl.offsetWidth + pgm.padX * 2;
-      pb.box.style.width = bw + 'px';
-      pb.box.style.height = pgm.h + 'px';
-      return bw;
-    });
-    let plx = S.vw * 0.5 - (pw.reduce((a, b) => a + b, 0) + pgm.gap * (pw.length - 1)) / 2;
     els.pledges.forEach((pb, i) => {
-      S.pledX[i] = plx + pw[i] / 2;
-      plx += pw[i] + pgm.gap;
-      gsap.set(pb.el, { x: S.pledX[i], y: pgm.y, rotation: pgm.rots[i], scale: 1, autoAlpha: 0 });
+      pb.lbl.style.fontSize = pgm.pf + 'px';
+      if (pb.desc) pb.desc.style.fontSize = pgm.df + 'px';
+      pb.box.style.width = pgm.w + 'px';
+      gsap.set(pb.el, { x: pgm.x, y: pgm.ys[i], rotation: 0, scale: 1, autoAlpha: 0 });
     });
 
     // FAQ grid: caption + rows sized; cells reset to collapsed resting state

@@ -510,33 +510,42 @@ html, body {
   color: #fff;
   line-height: 1;
 }
-.trustThe {
-  font-weight: 600;
-  font-style: italic;
-  color: rgba(255,255,255,.42);
-}
-
-/* pledge slabs */
+/* pledge blocks: borderless text rows stacked vertically */
 #pledge1, #pledge2, #pledge3 { opacity: 0; visibility: hidden; will-change: transform; }
 .pledge {
-  border: 1.5px solid rgba(255,255,255,.30);
-  border-radius: 14px;
-  background: #101015;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 20px 46px rgba(0,0,0,.5), inset 0 0 24px rgba(255,255,255,.04);
+  gap: 0.55em;
+  text-align: center;
 }
 .pledge .pbl {
   color: #ececf2;
   font-weight: 600;
+  line-height: 1.2;
   white-space: nowrap;
   letter-spacing: -0.01em;
 }
-.pledge .pbl b {
-  font-weight: 700;
-  color: #fff;
-  margin-right: 0.35em;
+.pledge .pbd {
+  color: rgba(236,236,242,.62);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  white-space: normal;
+  max-width: 94%;
+}
+.pledge .pgrid {
+  display: grid;
+  grid-template-columns: repeat(6, auto);
+  justify-content: center;
+  align-content: center;
+  column-gap: 0.34em;
+  row-gap: 0.06em;
+}
+.pledge .pgrid span {
+  display: block;
+  line-height: 1;
 }
 
 /* FAQ grid */

@@ -470,27 +470,74 @@ window.MZT = (function () {
     return tl;
   }
 
-  // 21 -> 22: the wordmark trio lifts up and shrinks; the pledge slabs rise
-  // from the bottom one after another ("/ Direct access to developer", ...)
-  function buildPledges() {
-    const tl = gsap.timeline({ paused: true });
-    const S = MZ.S;
-    const tgm = MZ.trustGeom();
-    const pgm = MZ.pledGeom();
+  // 21 -> 22 / 22 -> 23 / 23 -> 24: one pledge row per scroll, strictly after
+  // the previous one has finished — each with its own effect:
+  //   row 1 — stagger grid: the line's 30 chars sit in a 2x15 tile grid and
+  //           pulse outward from its center
+  //   row 2 — reveal wave: characters surface at a fixed per-second rate
+  //   row 3 — scramble: random characters unravel left-to-right into the line
 
-    [MZ.els.trust1, MZ.els.trust2, MZ.els.trust3].forEach((el, i) => {
-      tl.to(el, { y: tgm.upY, scale: tgm.upS, duration: 0.95, ease: 'power3.inOut' }, i * 0.05);
-    });
-    MZ.els.pledges.forEach((pb, i) => {
-      tl.fromTo(pb.el,
-        { y: pgm.y + S.vh * 0.46, autoAlpha: 0, rotation: pgm.rots[i] + (i % 2 ? -6 : 7) },
-        { y: pgm.y, autoAlpha: 1, rotation: pgm.rots[i], duration: 0.9, ease: 'power3.out', immediateRender: false },
-        0.5 + i * 0.17);
-    });
+  function pledgeRise(tl, i) {
+    const S = MZ.S;
+    const pgm = MZ.pledGeom();
+    const pb = MZ.els.pledges[i];
+    tl.fromTo(pb.el,
+      { y: pgm.ys[i] + S.vh * 0.30, autoAlpha: 0 },
+      { y: pgm.ys[i], autoAlpha: 1, duration: 0.6, ease: 'power3.out', immediateRender: false },
+      0.16);
+    return pb;
+  }
+
+  function buildPledge1() {
+    const tl = gsap.timeline({ paused: true });
+    const pb = pledgeRise(tl, 0);
+    const D = 0.42 + 29 * 0.045 + 0.3;   // moment the grid pulse finishes
+    tl.fromTo(pb.charsLbl,
+      { scale: 0.2, autoAlpha: 0 },
+      { scale: 1, autoAlpha: 1, duration: 0.3, ease: 'power1.out', immediateRender: false,
+        stagger: { each: 0.045, grid: [2, 15], from: 'center' } },
+      0.42);
+    // settle: the letters fold out of the matrix back into a clean text line
+    tl.to(pb.lbl, { autoAlpha: 0, duration: 0.12 }, D - 0.14);
+    tl.call(() => { pb.lbl.classList.remove('pgrid'); }, null, D);
+    tl.to(pb.lbl, { autoAlpha: 1, duration: 0.12 }, D + 0.02);
     return tl;
   }
 
-  // 22 -> 23: trust line + pledges exit upward; the FAQ grid clicks into place
+  function buildPledge2() {
+    const tl = gsap.timeline({ paused: true });
+    const pb = pledgeRise(tl, 1);
+    tl.fromTo(pb.charsLbl,
+      { autoAlpha: 0 },
+      { autoAlpha: 1, duration: 0.09, stagger: { each: 0.02 }, ease: 'none', immediateRender: false },
+      0.42);
+    return tl;
+  }
+
+  function buildPledge3() {
+    const tl = gsap.timeline({ paused: true });
+    const pb = pledgeRise(tl, 2);
+    const POOL = 'MZHX*#/0427';   // character pool driven live by the scramble
+    const scTxt = (txt, p) => {
+      let out = '';
+      const n = txt.length;
+      for (let i = 0; i < n; i++) {
+        const ch = txt[i];
+        if (ch === ' ') { out += ' '; continue; }
+        out += p * n >= i + 1 ? ch : POOL[(Math.random() * POOL.length) | 0];
+      }
+      return out;
+    };
+    tl.call(() => { pb.lbl.textContent = scTxt(pb.finalTxt, 0); }, null, 0.16);
+    const proxy = { p: 0 };
+    tl.to(proxy, {
+      p: 1, duration: 0.85, ease: 'none', immediateRender: false,
+      onUpdate: () => { pb.lbl.textContent = scTxt(pb.finalTxt, proxy.p); },
+    }, 0.42);
+    return tl;
+  }
+
+  // 24 -> 25: trust line + pledge rows exit upward; the FAQ grid clicks into place
   function buildFaqIn() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
@@ -499,11 +546,11 @@ window.MZT = (function () {
     const fg = MZ.faqGeom();
 
     [MZ.els.trust1, MZ.els.trust2, MZ.els.trust3].forEach((el, i) => {
-      tl.to(el, { y: tgm.upY - S.vh * 0.17, autoAlpha: 0, duration: 0.6, ease: 'power2.in' }, i * 0.04);
+      tl.to(el, { y: tgm.y - S.vh * 0.17, autoAlpha: 0, duration: 0.6, ease: 'power2.in' }, i * 0.04);
     });
     MZ.els.pledges.forEach((pb, i) => {
       tl.to(pb.el, {
-        y: pgm.y - S.vh * 0.36, autoAlpha: 0, rotation: pgm.rots[i] * -1.6,
+        y: pgm.ys[i] - S.vh * 0.36, autoAlpha: 0, rotation: 0,
         duration: 0.6, ease: 'power2.in',
       }, 0.05 + i * 0.05);
     });
@@ -580,8 +627,10 @@ window.MZT = (function () {
         : i === 18 ? buildWorksNext(2)
         : i === 19 ? buildWorksNext(3)
         : i === 20 ? buildTrustIn()
-        : i === 21 ? buildPledges()
-        : i === 22 ? buildFaqIn()
+        : i === 21 ? buildPledge1()
+        : i === 22 ? buildPledge2()
+        : i === 23 ? buildPledge3()
+        : i === 24 ? buildFaqIn()
         : buildFinale();
     }
     return cache[i];
