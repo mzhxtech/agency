@@ -384,8 +384,8 @@
     current = 0;
     busy = false;
     MZ.els.logoBox.classList.add('hero-live');   // X pendulum
-    // per-letter JS glow retired — the MZHX letters now wear the CSS chrome sheen
-    // (the .hl .self gradient sweep in styles.css), which travels M -> Z -> H -> X
+    if (!mzhxCycle) mzhxCycle = MZ.makeGlowWave(MZ.els.letters, 0.6);   // smooth traveling glow
+    mzhxCycle.start();
     syncIdle(0);
     pump();
   }
