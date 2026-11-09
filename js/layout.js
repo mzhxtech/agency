@@ -1006,12 +1006,11 @@ window.MZ = (function () {
     //          (2 x RISE + HOLD === n) so no phase ever truncates on the wrap
     const HOLD = 0.4;
     const RISE = (n - HOLD) / 2, FALL = RISE;
-    // easing shared by both directions: cosine S (zero slope at both ends) softened
-    // with smoothstep; brightness 0 at u=0, 1 at u=1
-    const bump = (u) => {
-      let t = 0.5 * (1 - Math.cos(Math.PI * u));
-      return t * t * (3 - 2 * t);
-    };
+    // easing shared by both directions: a single smoothstep S — zero slope at both
+    // ends (seamless into the hold at white and out again at gray) with an even,
+    // steady walk through every color in between (peak speed 1.5x average; the old
+    // cosine+smoothstep blend peaked at ~2.4x and snapped through the mid-tones)
+    const bump = (u) => u * u * (3 - 2 * u);
     let proxy = { k: 0 }, tween = null, mote = null, glyphs = null;
 
     function anchorRects() {
