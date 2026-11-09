@@ -202,6 +202,11 @@ html, body {
   will-change: transform;
 }
 
+/* raw-DOM flash guard: these wrappers are alpha-managed by GSAP — on a cold
+   load the browser can paint the parsed static DOM before the scripts boot,
+   which used to show the bare anchor content half-clipped at the top edge */
+#grillWrap, #ows { opacity: 0; visibility: hidden; }
+
 /* ============ FULL-WIDTH SECTION LAYER ============ */
 #fullLayer {
   position: fixed;
