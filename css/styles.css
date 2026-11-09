@@ -779,7 +779,9 @@ html, body {
    option cells, chrome sheen on the final scheduled text, bar-shake on
    an invalid email. Tokens stay scoped to the shell — the dark stage
    keeps the white shell + ink text; ring/focus are drawn white. */
-#mailPill { opacity: 0; visibility: hidden; will-change: transform; }
+#mailPill { opacity: 0; visibility: hidden; will-change: transform;
+  /* fullLayer is pointer-dead by design; the shell must reclaim real clicks */
+  pointer-events: auto; }
 .bk-shell {
   --bk-ink: #0F191E;
   --bk-surf: #fff;
@@ -1027,9 +1029,9 @@ html, body {
 }
 
 /* ---------- jump CTA chip ----------
-   Flies in from the left above the MZHX wordmark and reuses the booking
-   pill's idle look (.bk / .bk-ring). The booking tokens are scoped here
-   because the chip sits outside the .bk-shell that normally owns them. */
+   Outline skin on the dark stage: transparent, white border + label, a
+   slow white ring pulse and a soft border glow so it reads as alive while
+   idle; hover/focus flips it to the filled booking-pill look. */
 #jumpCta {
   --bk-ink: #0F191E;
   --bk-surf: #fff;
@@ -1037,11 +1039,27 @@ html, body {
   will-change: transform;
 }
 #jumpCta .bk {
-  font: 600 13px/1.5 'JetBrains Mono', ui-monospace, Consolas, monospace;
-  letter-spacing: 0.08em;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, .92);
+  color: #FFFFFF;
+  font: 600 12.5px/1.5 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  transition: background .3s ease, color .3s ease, border-color .3s ease;
+  animation: jump-glow 2.8s ease-in-out infinite;
+}
+#jumpCta .bk:is(:hover, :focus-visible) {
+  background: #FFFFFF;
+  color: var(--bk-ink);
 }
 #jumpCta .bk:active { transform: translateY(1px); }
+
+/* white ring breathes outward while idle (hover keeps/focuses it too) */
+#jumpCta .bk-ring::after { animation: bk-ring 2.4s ease-out infinite; }
+@keyframes jump-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  50% { box-shadow: 0 0 16px 1px rgba(255, 255, 255, .16); }
+}
 
 /* one-shot jump transition: stage-colored disc swallows the viewport while
    an outline ring + small particles burst from the chip (transient DOM) */
@@ -1054,6 +1072,15 @@ html, body {
   pointer-events: none;
   will-change: transform, opacity;
 }
+/* galaxy travel under the cover: single canvas starfield (warp), sits just
+   above the wash; see jumpFinale in app.js */
+.jump-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw; height: 100vh;
+  z-index: 61;
+  pointer-events: none;
+}
 .jump-ring {
   position: fixed;
   left: 0; top: 0;
@@ -1061,18 +1088,20 @@ html, body {
   margin-left: -60px; margin-top: -60px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, .85);
-  z-index: 61;
+  z-index: 62;
   pointer-events: none;
 }
 .jump-dot {
   position: fixed;
   left: 0; top: 0;
   border-radius: 50%;
-  z-index: 62;
+  z-index: 63;
   pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .jump-wash, .jump-ring, .jump-dot { display: none; }
+  .jump-wash, .jump-ring, .jump-dot, .jump-canvas { display: none; }
   #jumpCta { transition: none; }
+  #jumpCta .bk { animation: none; }
+  #jumpCta .bk-ring::after { animation: none; }
 }

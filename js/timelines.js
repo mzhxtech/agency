@@ -596,6 +596,9 @@ window.MZT = (function () {
       tl.to(q.el, { y: -S.vh * 0.16, autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 0.05 + k * 0.03);
     });
     tl.to(MZ.els.faqCap, { y: fg.capY - S.vh * 0.07, autoAlpha: 0, duration: 0.4, ease: 'power2.in' }, 0.05);
+    // once the rows are gone the (sized) container must stop eating clicks over
+    // the CTA band — it stays in the tree for resize, so park it pointer-dead
+    tl.set(MZ.els.faqList, { autoAlpha: 0, pointerEvents: 'none' }, 0.75);
 
     // hero letters fly from the header into the big centered wordmark
     MZ.els.letters.forEach((el, i) => {

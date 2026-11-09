@@ -201,7 +201,7 @@
     for (let i = 0; i < 34; i++) {
       const d = document.createElement('div');
       d.className = 'jump-dot';
-      const sz = 2 + Math.random() * 5;
+      const sz = 3 + Math.random() * 6;
       const a = Math.random() * Math.PI * 2;
       const dist = (0.10 + Math.random() * 0.42) * window.innerWidth;
       d.style.width = sz + 'px';
@@ -221,6 +221,67 @@
       });
     }
 
+    // galaxy travel: one canvas, a fixed pool of 3D stars — perspective
+    // projection does the engine (screen = origin + pos·W/z), gsap.ticker
+    // renders, warp velocity eases up via gsap as the cover settles; every
+    // star blinks on its own clock, closes-in stars grow and stretch into
+    // streaks (previous->current projection = motion blur) then recycle far
+    const cv = document.createElement('canvas');
+    cv.className = 'jump-canvas';
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(window.innerWidth * dpr);
+    cv.height = Math.round(window.innerHeight * dpr);
+    document.body.appendChild(cv);
+    const g2 = cv.getContext('2d');
+    const W = cv.width, H = cv.height;
+    const gx = ox * dpr, gy = oy * dpr;
+    const RND = gsap.utils.random;
+    const TINTS = ['255,255,255', '255,255,255', '255,255,255', '255,79,216', '79,248,255', '255,214,165'];
+    const DEPTH = 7, NEAR = 0.2;
+    const COUNT = Math.round(Math.max(400, Math.min(700, (W * H) / 2000)));
+    const mkStar = (far) => ({
+      x: RND(-1.15, 1.15), y: RND(-1.15, 1.15),
+      z: far ? DEPTH : RND(0.45, DEPTH),
+      s: RND(0.8, 2.6),
+      tw: RND(0.6, 3.6),                          // own blink clock, phase-offset
+      ph: Math.random() * Math.PI * 2,
+      tint: TINTS[(Math.random() * TINTS.length) | 0],
+      big: Math.random() < 0.09,
+    });
+    const stars = Array.from({ length: COUNT }, () => mkStar(false));
+    const warp = { k: 0.3 };
+    gsap.to(warp, { k: 1, duration: 1.2, ease: 'power2.inOut', delay: 0.55 });
+    const tick = (time, dtms) => {
+      const dt = dtms != null ? Math.min(0.05, dtms / 1000) : 0.016;
+      g2.clearRect(0, 0, W, H);
+      g2.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < stars.length; i++) {
+        const st = stars[i];
+        const z1 = st.z;
+        st.z -= 0.13 * warp.k * dt * 2.4;
+        if (st.z <= NEAR) { stars[i] = mkStar(true); continue; }
+        const x1 = gx + st.x * (W / z1), y1 = gy + st.y * (W / z1);
+        const x2 = gx + st.x * (W / st.z), y2 = gy + st.y * (W / st.z);
+        const twk = 0.45 + 0.55 * Math.sin(time * st.tw * Math.PI * 2 + st.ph);
+        const px = Math.max(0.85, st.s * dpr * (2.6 / st.z));
+        const dx = x2 - x1, dy = y2 - y1;
+        const dist = Math.hypot(dx, dy);
+        if (dist > px * 1.6) {   // moving fast: streak from prev projection
+          g2.strokeStyle = 'rgba(' + st.tint + ',' + Math.min(1, 0.85 * twk + 0.1).toFixed(3) + ')';
+          g2.lineWidth = px * 1.1 + 0.7;
+          g2.beginPath(); g2.moveTo(x1, y1); g2.lineTo(x2, y2); g2.stroke();
+        } else {
+          g2.fillStyle = 'rgba(' + st.tint + ',' + Math.min(1, twk).toFixed(3) + ')';
+          g2.beginPath(); g2.arc(x2, y2, px, 0, Math.PI * 2); g2.fill();
+        }
+        if (st.big) {           // large stars carry a soft halo
+          g2.fillStyle = 'rgba(' + st.tint + ',' + (0.16 * twk).toFixed(3) + ')';
+          g2.beginPath(); g2.arc(x2, y2, px * 3.4, 0, Math.PI * 2); g2.fill();
+        }
+      }
+    };
+    gsap.ticker.add(tick);
+
     // cover is up: plant resting-30 and play the real finale transition,
     // reusing the step machine's own completion bookkeeping
     setTimeout(() => {
@@ -232,10 +293,16 @@
       tl.play(0);
     }, 1000);
 
-    // ~2s of finale composition happen under the cover, then it eases away:
-    // the booking shell expands onto its first step as the page reveals
+    // ~2s of finale composition happen under the cover, then it eases away —
+    // but the galaxy keeps flying: it slows to a calm drift, hangs over the
+    // fresh finale for a beat and then dissolves slowly over it, so arrival
+    // reads as one continuous handoff instead of a hard cut; the booking
+    // shell expands onto its first step (date) as the page reveals
     setTimeout(() => {
       gsap.to(wash, { scale: 1.18, opacity: 0, duration: 0.65, ease: 'power2.inOut', onComplete: () => wash.remove() });
+      gsap.to(warp, { k: 0.1, duration: 1.6, ease: 'power2.out' });
+      gsap.to(cv, { opacity: 0, delay: 1.15, duration: 1.05, ease: 'power1.inOut',
+        onComplete: () => { gsap.ticker.remove(tick); cv.remove(); } });
       if (chip) gsap.set(chip, { autoAlpha: 0 });
       if (MZ.bookingOpen) MZ.bookingOpen();
     }, 3000);
@@ -471,7 +538,9 @@
     const fg = MZ.faqGeom();
     const faqOn = t >= 25 && t <= 30;
     gsap.set(MZ.els.faqCap, { x: S.vw / 2, y: fg.capY, autoAlpha: faqOn ? 1 : 0 });
-    gsap.set(MZ.els.faqList, { xPercent: -50, x: fg.x, y: fg.topY, autoAlpha: faqOn ? 1 : 0 });
+    gsap.set(MZ.els.faqList, { xPercent: -50, x: fg.x, y: fg.topY, autoAlpha: faqOn ? 1 : 0,
+      // back at a FAQ step = rows clickable again; gone = never eat clicks
+      pointerEvents: faqOn ? 'auto' : 'none' });
     MZ.els.faqs.forEach((q, k) => {
       gsap.set(q.el, { y: 0, autoAlpha: t >= 25 + k ? 1 : 0 });
       // collapsed resting accordion (heals a snap taken mid-hover)
