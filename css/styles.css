@@ -704,9 +704,73 @@ html, body {
   will-change: transform;
 }
 
+/* ---- 03 Teletype — typewriter with blinking caret (word must match the ch
+   width). Runs on the finale CTA lines. Types once on arrival — the site
+   gates the start (element parks via display:none and is shown on the
+   arrival scroll, which restarts the animation from 0). Colour tokens:
+   --ink main text (defaults to currentColor), --ink-2 primary accent,
+   --ink-3 secondary accent. ---- */
+:root { --ink: currentColor; --ink-2: #FF4FD8; --ink-3: #4FF8FF; }
+.fx-typewriter {
+  --typeW: 10ch;                      /* = number of characters typed */
+  box-sizing: content-box;            /* the caret sits outside the character-count width */
+  font: 600 24px/1.2 "JetBrains Mono", monospace;
+  letter-spacing: 0;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  width: var(--typeW);
+  border-right: .55ch solid var(--ink-2);
+  animation: fx-type 3.6s steps(10),          /* types once — no loop */
+             fx-caret .65s steps(1) infinite;
+}
+@keyframes fx-type {
+  0%, 8%    { width: 0; }
+  55%, 100% { width: var(--typeW); }
+}
+@keyframes fx-caret {
+  50% { border-color: transparent; }
+}
+/* site integration — the two finale lines carry the counts/steps and a
+   terminal sequence in pure CSS: line 1 types first; when line 2's turn
+   starts, line 1's caret parks (transparent) and line 2's caret blinks in.
+   Each caret also fades out a beat after its own line finishes typing —
+   nothing blinks forever. Same motion and timing curve, only the counts
+   and delays live here. */
+#cta1Text.fx-typewriter,
+#cta2Text.fx-typewriter {
+  border-right-color: #fff;                 /* site skin: white caret */
+}
+#cta1Text.fx-typewriter {
+  --typeW: 35ch;
+  animation: fx-type 3.6s steps(35),
+             fx-caret .65s steps(1) infinite,
+             fx-caret-off .35s linear 2.3s forwards;
+}
+#cta2Text.fx-typewriter {
+  --typeW: 41ch;
+  visibility: hidden;                        /* waits for its turn */
+  animation: fx-type 3.6s steps(41) 2.3s both,
+             fx-caret .65s steps(1) infinite 2.3s,
+             fx-show .01s linear 2.3s forwards,
+             fx-caret-off .35s linear 4.6s forwards;
+}
+@keyframes fx-caret-off { to { border-color: transparent; } }
+@keyframes fx-show { to { visibility: visible; } }
+/* the lines anchor on their left edge so the typing extends rightward;
+   they end centered (left anchor = center minus half the full width) */
+#cta1 .bcenter, #cta2 .bcenter { transform: translate(0, -50%); }
+@media (prefers-reduced-motion: reduce) {
+  .fx-typewriter,
+  #cta1Text.fx-typewriter,
+  #cta2Text.fx-typewriter { animation: none; visibility: visible; }
+  #cta1Text.fx-typewriter,
+  #cta2Text.fx-typewriter { border-right-color: transparent; }   /* final state: no caret */
+}
+
 /* finale CTA */
 #cta1, #cta2 { opacity: 0; visibility: hidden; will-change: transform; }
-#cta1Text, #cta2Text { font-weight: 700; letter-spacing: -0.02em; color: #fff; }
+#cta1Text, #cta2Text { color: #fff; }
 #cta2Text { color: #d9d9e3; }
 
 /* email pill */

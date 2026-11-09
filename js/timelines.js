@@ -602,16 +602,13 @@ window.MZT = (function () {
       tl.to(el, { x: fl.pos(i).x, y: fl.y, scale: fl.s, duration: 1.05, ease: 'power4.inOut' }, 0.3 + i * 0.045);
     });
 
-    tl.set(MZ.els.cta1, { x: cg.l1.x, y: cg.l1.y, immediateRender: false }, 1.15);
+    // CTA lines: left-anchored; the pure-CSS Teletype fx draws them in
+    tl.set(MZ.els.cta1, { x: cg.l1.x - (MZ.els.ctaFullW ? MZ.els.ctaFullW[0] / 2 : 0), y: cg.l1.y, immediateRender: false }, 1.15);
     tl.fromTo(MZ.els.cta1, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2, immediateRender: false }, 1.15);
-    MZ.els.cta1Words.forEach((w, i) => {
-      tl.fromTo(w, { yPercent: 120 }, { yPercent: 0, duration: 0.65, ease: 'power4.out', immediateRender: false }, 1.25 + i * 0.1);
-    });
-    tl.set(MZ.els.cta2, { x: cg.l2.x, y: cg.l2.y, immediateRender: false }, 1.5);
-    tl.fromTo(MZ.els.cta2, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2, immediateRender: false }, 1.5);
-    MZ.els.cta2Words.forEach((w, i) => {
-      tl.fromTo(w, { yPercent: 120 }, { yPercent: 0, duration: 0.65, ease: 'power4.out', immediateRender: false }, 1.6 + i * 0.09);
-    });
+    tl.set(MZ.els.cta2, { x: cg.l2.x - (MZ.els.ctaFullW ? MZ.els.ctaFullW[1] / 2 : 0), y: cg.l2.y, immediateRender: false }, 1.45);
+    tl.fromTo(MZ.els.cta2, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2, immediateRender: false }, 1.45);
+    // un-park both typed lines (once): line 1 types, CSS delay hands off to line 2
+    tl.call(() => { if (MZ.els.ctaType) MZ.els.ctaType(true); }, null, 1.35);
 
     tl.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, immediateRender: false }, 1.95);
     tl.fromTo(MZ.els.pill,

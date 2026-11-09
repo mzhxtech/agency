@@ -23,8 +23,8 @@ window.MZ = (function () {
       { name: 'RideShare', tag: 'Share the ride, split the fare', tags: 'Mobile · Maps · Ride sharing', g: 'g3', init: 'R' },
       { name: 'Planisher', tag: 'Calm construction planning workspace', tags: 'Web app · Scheduling · Cost control', g: 'g4', init: 'P' },
     ],
-    cta1: ['Book', 'a', 'free', '30', 'minute', 'scoping', 'call,'],
-    cta2: ['or', 'get', 'a', 'free', 'audit', 'of', 'your', 'current', 'site.'],
+    cta1: 'Book a free 30 minute scoping call,',
+    cta2: 'or get a free audit of your current site.',
     pledges: [
       { txt: 'Direct access to the developer' },
       { txt: 'Weekly demos' },
@@ -355,18 +355,14 @@ window.MZ = (function () {
     });
     els.faqCollapseAll = () => { cancelClose(); if (faqOpen) { closeFaq(faqOpen); faqOpen = null; } };
 
-    // ---------- finale ----------
-    const buildCta = (id, words) => {
+    // ---------- finale CTA lines: pure-CSS Teletype fx, typed once per
+    // arrival (display gate mirrors the trust annotation park/unpark) ----------
+    const buildCta = (id, txt) => {
       const a = document.createElement('div');
       a.className = 'posbase'; a.id = id;
       const c = document.createElement('span'); c.className = 'bcenter';
-      const h = document.createElement('h2'); h.id = id + 'Text';
-      words.forEach((t) => {
-        const w = document.createElement('span'); w.className = 'w';
-        const wi = document.createElement('span'); wi.className = 'wi';
-        wi.textContent = t;
-        w.appendChild(wi); h.appendChild(w);
-      });
+      const h = document.createElement('h2'); h.id = id + 'Text'; h.className = 'fx-typewriter';
+      h.textContent = txt;
       c.appendChild(h); a.appendChild(c);
       els.nextLayer.appendChild(a);
       return { a, h };
@@ -375,8 +371,12 @@ window.MZ = (function () {
     const c2 = buildCta('cta2', data.cta2);
     els.cta1 = c1.a; els.cta1Inner = c1.h;
     els.cta2 = c2.a; els.cta2Inner = c2.h;
-    els.cta1Words = Array.from(els.cta1Inner.querySelectorAll('.wi'));
-    els.cta2Words = Array.from(els.cta2Inner.querySelectorAll('.wi'));
+    els.ctaN = [data.cta1.length, data.cta2.length];
+    els.ctaType = (on) => {   // parked = unrendered; unparked = the CSS typing starts fresh
+      els.cta1Inner.style.display = on ? '' : 'none';
+      els.cta2Inner.style.display = on ? '' : 'none';
+    };
+    els.ctaType(false);
 
     els.pill = document.createElement('div');
     els.pill.className = 'posbase'; els.pill.id = 'mailPill';
@@ -921,12 +921,24 @@ window.MZ = (function () {
     if (els.faqCollapseAll) els.faqCollapseAll();
 
     const ctg = ctaGeom();
-    els.cta1Inner.style.fontSize = fitText(els.cta1Inner, Math.min(S.vw * 0.044, S.vh * 0.088), S.vw * 0.74) + 'px';
-    els.cta2Inner.style.fontSize = fitText(els.cta2Inner, Math.min(S.vw * 0.044, S.vh * 0.088), S.vw * 0.80) + 'px';
-    [[els.cta1, ctg.l1, els.cta1Words], [els.cta2, ctg.l2, els.cta2Words]].forEach(([a, pos, words]) => {
-      gsap.set(a, { xPercent: -50, yPercent: -50, x: pos.x, y: pos.y, autoAlpha: 0 });
-      gsap.set(words, { yPercent: 115 });
-    });
+    // teletype lines: measure the mono advance ('0' glyph at 100px), then fit
+    // each line to its column so width:Nch matches the typed character count
+    const typeProbe = document.createElement('span');
+    typeProbe.style.cssText = 'position:absolute;top:0;left:0;visibility:hidden;white-space:pre;font:600 100px/1 "JetBrains Mono", monospace;letter-spacing:0';
+    typeProbe.textContent = '0';
+    document.body.appendChild(typeProbe);
+    const chRatio = typeProbe.offsetWidth / 100;
+    typeProbe.remove();
+    const ctaFit = (n, maxW) => Math.max(12, Math.min(Math.min(S.vw * 0.044, S.vh * 0.088), maxW / (n * chRatio)));
+    const cf1 = ctaFit(els.ctaN[0], S.vw * 0.74);
+    const cf2 = ctaFit(els.ctaN[1], S.vw * 0.80);
+    els.cta1Inner.style.fontSize = cf1 + 'px';
+    els.cta2Inner.style.fontSize = cf2 + 'px';
+    els.ctaFullW = [els.ctaN[0] * chRatio * cf1, els.ctaN[1] * chRatio * cf2];
+    // left-anchored so the typing extends rightward (settles centered)
+    gsap.set(els.cta1, { x: ctg.l1.x - els.ctaFullW[0] / 2, y: ctg.l1.y, autoAlpha: 0 });
+    gsap.set(els.cta2, { x: ctg.l2.x - els.ctaFullW[1] / 2, y: ctg.l2.y, autoAlpha: 0 });
+    if (els.ctaType) els.ctaType(false);
     els.pill.querySelector('span').style.fontSize = Math.min(S.vw * 0.017, 21) + 'px';
     gsap.set(els.pill, { xPercent: -50, yPercent: -50, x: ctg.pill.x, y: ctg.pill.y, scale: 1, autoAlpha: 0 });
     els.footLine.querySelector('span').style.fontSize = Math.min(13.5, S.vw * 0.011) + 'px';

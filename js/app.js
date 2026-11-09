@@ -372,10 +372,10 @@
 
     // ---------- finale / CTA (step 31) ----------
     const cg = MZ.ctaGeom();
-    gsap.set(MZ.els.cta1, { x: cg.l1.x, y: cg.l1.y, autoAlpha: t >= 31 ? 1 : 0 });
-    gsap.set(MZ.els.cta2, { x: cg.l2.x, y: cg.l2.y, autoAlpha: t >= 31 ? 1 : 0 });
-    gsap.set(MZ.els.cta1Words, { yPercent: t >= 31 ? 0 : 120 });
-    gsap.set(MZ.els.cta2Words, { yPercent: t >= 31 ? 0 : 120 });
+    gsap.set(MZ.els.cta1, { x: cg.l1.x - (MZ.els.ctaFullW ? MZ.els.ctaFullW[0] / 2 : 0), y: cg.l1.y, autoAlpha: t >= 31 ? 1 : 0 });
+    gsap.set(MZ.els.cta2, { x: cg.l2.x - (MZ.els.ctaFullW ? MZ.els.ctaFullW[1] / 2 : 0), y: cg.l2.y, autoAlpha: t >= 31 ? 1 : 0 });
+    // typed lines park off-finale (fresh type on every arrival)
+    if (MZ.els.ctaType) MZ.els.ctaType(t >= 31);
     gsap.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, scale: 1, autoAlpha: t >= 31 ? 1 : 0 });
     gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 31 ? 1 : 0 });
 
@@ -435,6 +435,11 @@
 
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(start).catch(start);
+      document.fonts.ready.then(() => {
+        // if the webfont landed after the initial fit, refit with the real
+        // mono advance (pre-intro only — never resets a running intro)
+        if (!started) MZ.prepStatic();
+      }).catch(() => {});
       setTimeout(start, 2000);   // safety net if font promise stalls
     } else {
       start();
