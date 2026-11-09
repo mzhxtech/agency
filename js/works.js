@@ -81,7 +81,6 @@ window.MZG = (function () {
     canvas.insertBefore(shots, wm);        // bricks below, letter mark above
     card.shots = shots;
     card.base = base;
-    card.grad = getComputedStyle(canvas).backgroundImage;   // the card's own ink for the boxes
   }
 
   /* ---------- folder discovery (future-proof: add shots, they join) ---------- */
@@ -110,7 +109,6 @@ window.MZG = (function () {
     card.busy = false;
     const url = card.urls[card.i];
     card.base.style.backgroundImage = 'url("' + url + '")';
-    card.fills.forEach((f) => { f.style.background = card.grad; });
     gsap.set(card.tiles, { autoAlpha: 1, scale: 1, rotation: 0 });
     gsap.set(card.fills, { opacity: 0 });                // rest: tiles show the current image
     card.arts.forEach((a) => { a.style.backgroundImage = 'url("' + url + '")'; });
@@ -129,6 +127,13 @@ window.MZG = (function () {
     gsap.set(card.tiles, { scale: 1, rotation: 0 });
   }
 
+  /* neutral ink per box — charcoal in the site's chrome tone, a touch of
+     per-box luminance jitter so the wall reads textured, never flat gray */
+  function ink(k) {
+    const l = 15 + ((k * 2654435761 + 12345) % 7);   // rgb(15..21) charcoal band
+    return 'rgba(' + l + ',' + (l + 1) + ',' + (l + 3) + ',0.94)';
+  }
+
   /* ---------- the staggered grid swap ----------
      phase 1 — ink boxes fade in one by one in random order, building the
                 cover over the still-visible image
@@ -141,7 +146,8 @@ window.MZG = (function () {
     // decode the incoming screenshot first — never let tiles paint blanks
     Promise.race([prime(url), new Promise((r) => setTimeout(() => r(null), 450))]).then(() => {
       if (!card.shown) { card.busy = false; schedule(card, HOLD * 1000); return; }
-      card.fills.forEach((f) => { f.style.background = card.grad; });   // re-ink the wall
+      card.fills.forEach((f, k) => { f.style.background = ink(k); });   // neutral wall ink, refreshed each swap
+      card.arts.forEach((art) => { art.style.backgroundImage = 'url("' + url + '")'; });
       card.arts.forEach((art) => { art.style.backgroundImage = 'url("' + url + '")'; });
       if (card.tl) card.tl.kill();            // never two walls at once
       card.tl = gsap.timeline({
