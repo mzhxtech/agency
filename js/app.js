@@ -103,6 +103,7 @@
       const tl = MZT.getTrans(current);
       tl.eventCallback('onComplete', () => { current = next; afterStep(); });
       tl.eventCallback('onReverseComplete', null);
+      MZ.beginLetterFlight();   // raw letters + their glow own the visual mid-flight
       tl.play(0);
     } else {
       if (current === 8) stopJitter();   // free the grill's live jitter before snapping
@@ -383,6 +384,7 @@
   function onIntroDone() {
     current = 0;
     busy = false;
+    MZ.setLetters('compact');   // letters land -> limelight overlay takes the resting look
     MZ.els.logoBox.classList.add('hero-live');   // X pendulum
     if (!mzhxCycle) mzhxCycle = MZ.makeGlowWave(MZ.els.letters, 0.6);   // smooth traveling glow
     mzhxCycle.start();

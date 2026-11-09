@@ -54,6 +54,7 @@ window.MZ = (function () {
     els.letters    = Array.from(document.querySelectorAll('#logoBox .hl'));
     els.swingX     = document.querySelector('#logoBox .swing');
     els.joint      = document.querySelector('#logoBox .joint');
+    els.mzWord     = document.querySelector('#logoBox .mz-word');
     els.dPath      = document.querySelector('#dPath');
     els.riverCanvas = document.querySelector('#riverCanvas');
     els.boat       = document.querySelector('#riverBoat');
@@ -925,26 +926,49 @@ window.MZ = (function () {
 
   /* letters resting setters (resize-safe) */
   function setLetters(mode) {   // 'compact' | 'header' | 'finale' | 'stacked'
+    els.wordMode = mode;
     if (mode === 'stacked') {
       els.letters.forEach((el, i) => {
         const p = stackedPos(i);
         gsap.set(el, { x: p.x, y: p.y, scale: 1 });
       });
-      return;
-    }
-    if (mode === 'finale') {
+    } else if (mode === 'finale') {
       const lay = finaleLayout();
       els.letters.forEach((el, i) => {
         const p = lay.pos(i);
         gsap.set(el, { x: p.x, y: lay.y, scale: lay.s });
       });
-      return;
+    } else {
+      const lay = mode === 'header' ? headerLayout() : compactLayout();
+      els.letters.forEach((el, i) => {
+        const p = lay.pos(i);
+        gsap.set(el, { x: p.x, y: lay.y, scale: lay.s });
+      });
     }
-    const lay = mode === 'header' ? headerLayout() : compactLayout();
-    els.letters.forEach((el, i) => {
-      const p = lay.pos(i);
-      gsap.set(el, { x: p.x, y: lay.y, scale: lay.s });
-    });
+    syncWordChrome();
+  }
+
+  /* whole-word limelight sync: the clipped-spotlight overlay shows ONLY while the
+     wordmark rests on the left; the raw letters (and their glow wave) own the
+     visual during the intro, every flight, and the finale */
+  function syncWordChrome() {
+    const mode = els.wordMode || 'stacked';
+    if (mode === 'compact' || mode === 'header') {
+      const lay = mode === 'header' ? headerLayout() : compactLayout();
+      const s = lay.s;
+      const c0 = lay.pos(0);
+      const cx = c0.x - els.letterW[0] * s / 2 + els.wordSpan * s / 2;   // word center
+      gsap.set(els.mzWord, { xPercent: -50, yPercent: -50, x: cx, y: lay.y, scale: s, autoAlpha: 1 });
+      gsap.set(els.letters, { visibility: 'hidden' });
+    } else {
+      beginLetterFlight();
+    }
+  }
+
+  /* raw letters take back the visual (overlay drops out) before any motion */
+  function beginLetterFlight() {
+    gsap.set(els.mzWord, { autoAlpha: 0 });
+    gsap.set(els.letters, { visibility: 'visible' });
   }
 
   /* services resting layout for step t: rows 0..t stay stacked in the right column
@@ -1125,7 +1149,7 @@ window.MZ = (function () {
     loopGeom, arrow4Geom, arrow5Geom, arrow6Geom,
     worksGeom, trustGeom, pledGeom, faqGeom, finaleLayout, ctaGeom,
     boat, placeBoat,
-    setLetters, setServiceResting,
+    setLetters, setServiceResting, syncWordChrome, beginLetterFlight,
     makeLetterCycle, makeGlowWave, fitText, clamp,
   };
 })();

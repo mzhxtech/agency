@@ -74,6 +74,46 @@ html, body {
   opacity: 0;
 }
 
+/* ---- whole-word limelight: one spotlight beams across MZHX while it rests on the
+   left; layout.js syncWordChrome shows this overlay and hides the raw .hl letters
+   (their glow wave), beginLetterFlight hands the visual back before any flight.
+   The overlay's font metrics must stay pixel-identical to .hl (same size/weight/
+   line-height/letter-spacing) so one background box clips all four glyphs true. */
+#logoBox {
+  --mz-ink: #8a8a90;                  /* lit ink = the resting gray */
+  --mz-unlit: rgba(138,138,144,.14);  /* dim silhouette away from the beam */
+}
+.mz-word {
+  position: absolute;
+  left: 0; top: 0;
+  font-size: 27vh;
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  background: radial-gradient(3.5ch 100% at 50% 50%,
+      var(--mz-ink) 20%,
+      var(--mz-unlit) 75%
+    ) 0 0 / 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  visibility: hidden;                 /* JS owns visibility (left-side rests only) */
+  animation: mz-limelight 3.4s ease-in-out infinite alternate;
+  will-change: background-position, transform;
+}
+.mz-word .mw {
+  display: inline-block;
+  position: relative;
+  margin-right: .1em;                 /* repaints the .hl letter gap (0.10 x fs) */
+}
+.mz-word .mw:last-child { margin-right: 0; }
+#logoBox.hero-live .mz-word .joint { opacity: 1; }   /* pivot dot mirrors the raw X */
+/* the overlay's X swings for free: #logoBox.hero-live .swing already matches it */
+@keyframes mz-limelight {
+  0%   { background-position: 100% 0; }   /* beam enters from the left */
+  100% { background-position: 0% 0; }     /* exits right, then reverses back */
+}
+
 /* the extracted shadow-wisp peeling off a letter toward the next one */
 .glowMote {
   position: absolute;
