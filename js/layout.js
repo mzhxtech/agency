@@ -188,23 +188,46 @@ window.MZ = (function () {
       return d;
     });
 
-    // ---------- TRUST THE PROCESS ----------
-    const mkTrust = (id, txt, cls) => {
+    // ---------- TRUST THE PROCESS: one centered display line carrying the
+    // Margin-Note annotation (hand-drawn circle + underline, pure CSS fx).
+    // The svg starts parked (display:none) — the scroll machine un-parks it
+    // one scroll after the heading appears, which starts the animation
+    // fresh from 0. ----------
+    const mkTrust = (id, txt) => {
       const a = document.createElement('div');
       a.className = 'posbase'; a.id = id;
       const c = document.createElement('span'); c.className = 'bcenter';
-      const h = document.createElement('h2'); h.className = cls; h.textContent = txt;
+      const h = document.createElement('h2');
+      h.id = 'trustText';
+      h.className = 'trustW fx-annotate';
+      h.setAttribute('role', 'img');
+      h.setAttribute('aria-label', txt);
+      h.textContent = txt;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 200 100');
+      svg.setAttribute('preserveAspectRatio', 'none');
+      svg.setAttribute('aria-hidden', 'true');
+      const mkP = (cls, d) => {
+        const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        p.setAttribute('class', cls);
+        p.setAttribute('pathLength', '100');
+        p.setAttribute('d', d);
+        svg.appendChild(p);
+      };
+      mkP('fx-annotate-ring', 'M 104 8 C 58 5 22 18 12 36 C 2 56 30 82 78 90 C 126 98 178 88 190 68 C 202 48 170 20 122 10 C 108 7 92 6 78 8');
+      mkP('fx-annotate-line', 'M 30 82 C 52 76 68 86 92 80 S 132 74 152 82 S 168 84 172 78');
+      h.appendChild(svg);
       c.appendChild(h); a.appendChild(c);
       els.nextLayer.appendChild(a);
       return { a, h };
     };
-    const tw1 = mkTrust('trust1', 'TRUST', 'trustW');
-    const tw2 = mkTrust('trust2', 'THE', 'trustW');
-    const tw3 = mkTrust('trust3', 'PROCESS', 'trustW');
-    els.trust1 = tw1.a; els.trust2 = tw2.a; els.trust3 = tw3.a;
-    els.trust1Inner = tw1.h; els.trust2Inner = tw2.h; els.trust3Inner = tw3.h;
-    els.trustEls = [els.trust1, els.trust2, els.trust3];
-    els.trustInners = [els.trust1Inner, els.trust2Inner, els.trust3Inner];
+    const tw = mkTrust('trust1', 'TRUST THE PROCESS');
+    els.trust1 = tw.a; els.trust1Inner = tw.h;
+    els.trustAnnot = (on) => {   // park hides the svg (fx unrendered); un-park restarts it from 0
+      const svg = tw.h.querySelector('svg');
+      svg.style.display = on ? '' : 'none';
+    };
+    els.trustAnnot(false);
 
     // ---------- pledge blocks: borderless text rows stacked vertically ----------
     // hooks per row for the entrance effects: row 1 = scramble (plain text,
@@ -637,17 +660,15 @@ window.MZ = (function () {
     };
   }
 
-  /* TRUST THE PROCESS: three words sharing one centered row */
+  /* TRUST THE PROCESS: one centered display line; it lifts a touch when the
+     first pledge row stacks beneath it (one scroll after it appears) */
   function trustGeom() {
     const y = S.vh * 0.485;
     const fs = Math.min(S.vw * 0.062, S.vh * 0.135);
-    const gap = S.vw * 0.02;
-    const w = els.trustW || [0, 0, 0];
-    const tot = w[0] + gap + w[1] + gap + w[2];
-    const x0 = S.vw * 0.5 - tot / 2;
     return {
-      y, fs, gap,
-      cx: [x0 + w[0] / 2, x0 + w[0] + gap + w[1] / 2, x0 + tot - w[2] / 2],
+      y, fs,
+      x: S.vw / 2,
+      yLift: y - S.vh * 0.058,
     };
   }
 
@@ -867,14 +888,11 @@ window.MZ = (function () {
       gsap.set(n, { xPercent: -50, yPercent: -50, x: wg.nC.x, y: wg.nC.y, autoAlpha: 0 });
     });
 
-    // trust trio: fitted fonts, then measure each word width for the shared row
-    let tgm = trustGeom();
-    els.trustInners.forEach((h) => { h.style.fontSize = tgm.fs + 'px'; });
-    els.trustW = els.trustInners.map((h) => h.offsetWidth);
-    tgm = trustGeom();
-    els.trustEls.forEach((el, i) => {
-      gsap.set(el, { x: tgm.cx[i], y: tgm.y, scale: 1, autoAlpha: 0 });
-    });
+    // trust heading: fitted font, centered; annotation parked until step 22
+    const tgm = trustGeom();
+    els.trust1Inner.style.fontSize = tgm.fs + 'px';
+    gsap.set(els.trust1, { x: tgm.x, y: tgm.y, scale: 1, autoAlpha: 0 });
+    if (els.trustAnnot) els.trustAnnot(false);
 
     // pledge blocks: fonts + block width; stacked straight under the wordmark
     const pgm = pledGeom();

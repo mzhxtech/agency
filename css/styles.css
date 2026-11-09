@@ -503,11 +503,74 @@ html, body {
 }
 
 /* TRUST THE PROCESS */
-#trust1, #trust2, #trust3 { opacity: 0; visibility: hidden; will-change: transform; }
+#trust1 { opacity: 0; visibility: hidden; will-change: transform; }
 .trustW {
   font-weight: 700;
   letter-spacing: -0.03em;
   color: #fff;
+  line-height: 1;
+}
+
+/* ---- Margin-Note fx — a hand-drawn red-pen circle + underline annotate the
+   word. Applied to the trust heading one scroll after it appears. Colour
+   tokens: --ink main text (defaults to currentColor), --ink-2 primary accent,
+   --ink-3 secondary accent. ---- */
+:root { --ink: currentColor; --ink-2: #ff4fd8; --ink-3: #4ff8ff; }
+.fx-annotate {
+  position: relative;
+  display: inline-block;
+  padding: .34em .72em .42em;
+  font: 600 38px/1.1 "JetBrains Mono", monospace;
+  letter-spacing: .06em;
+  white-space: pre;
+  color: var(--ink);
+}
+.fx-annotate svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  transform: rotate(-1.2deg);
+}
+.fx-annotate path {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: fx-annotate-draw 5.2s cubic-bezier(.45, 0, .2, 1) infinite;
+}
+.fx-annotate .fx-annotate-line {
+  stroke: color-mix(in srgb, var(--ink-2) 62%, var(--ink-3));
+  stroke-width: 3;
+  animation-name: fx-annotate-draw-line;
+}
+@keyframes fx-annotate-draw {
+  0%, 6%    { stroke-dashoffset: 100; opacity: 0; }
+  7%        { opacity: 1; }
+  24%, 84%  { stroke-dashoffset: 0; opacity: 1; }
+  94%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes fx-annotate-draw-line {
+  0%, 16%   { stroke-dashoffset: 100; opacity: 0; }
+  17%       { opacity: 1; }
+  34%, 86%  { stroke-dashoffset: 0; opacity: 1; }
+  95%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx-annotate path,
+  .fx-annotate .fx-annotate-line { animation: none; stroke-dashoffset: 0; opacity: 1; }
+}
+/* site integration: the trust heading keeps the site's display type; the
+   drawing above keeps its exact motion, timing curves and colours */
+#trustText.fx-annotate {
+  font-family: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  letter-spacing: -0.03em;
   line-height: 1;
 }
 /* pledge blocks: borderless text rows stacked vertically */

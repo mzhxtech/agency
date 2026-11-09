@@ -333,9 +333,14 @@
     // ---------- TRUST THE PROCESS (21) + pledge rows (22..24, one per scroll) ----------
     const tgm = MZ.trustGeom();
     const trustOn = t >= 21 && t <= 24;
-    MZ.els.trustEls.forEach((el, i) => {
-      gsap.set(el, { x: tgm.cx[i], y: tgm.y, scale: 1, autoAlpha: trustOn ? 1 : 0 });
+    gsap.set(MZ.els.trust1, {
+      x: tgm.x,
+      y: t >= 22 ? tgm.yLift : tgm.y,
+      scale: 1,
+      autoAlpha: trustOn ? 1 : 0,
     });
+    // annotation rides the lifted state (svg parked everywhere else)
+    if (MZ.els.trustAnnot) MZ.els.trustAnnot(t >= 22 && t <= 24);
     const pgm = MZ.pledGeom();
     MZ.els.pledges.forEach((pb, i) => {
       const on = t >= 22 + i && t <= 24;

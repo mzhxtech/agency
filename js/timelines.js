@@ -455,18 +455,10 @@ window.MZT = (function () {
     });
     tl.to(MZ.els.worksTitle, { autoAlpha: 0, duration: 0.3 }, 0.5);
 
-    // TRUST: from the left
+    // TRUST: the whole display line rides in from the left and settles centered
     tl.fromTo(MZ.els.trust1,
-      { x: tgm.cx[0] - S.vw * 0.30, y: tgm.y, autoAlpha: 0 },
-      { x: tgm.cx[0], y: tgm.y, autoAlpha: 1, duration: 0.95, ease: 'power3.out', immediateRender: false }, 0.55);
-    // THE: plain fade, a touch of rise
-    tl.fromTo(MZ.els.trust2,
-      { x: tgm.cx[1], y: tgm.y + 26, autoAlpha: 0 },
-      { x: tgm.cx[1], y: tgm.y, autoAlpha: 1, duration: 0.7, ease: 'power2.out', immediateRender: false }, 0.95);
-    // PROCESS: from the right
-    tl.fromTo(MZ.els.trust3,
-      { x: tgm.cx[2] + S.vw * 0.30, y: tgm.y, autoAlpha: 0 },
-      { x: tgm.cx[2], y: tgm.y, autoAlpha: 1, duration: 0.95, ease: 'power3.out', immediateRender: false }, 0.72);
+      { x: tgm.x - S.vw * 0.30, y: tgm.y, autoAlpha: 0 },
+      { x: tgm.x, y: tgm.y, autoAlpha: 1, duration: 0.95, ease: 'power3.out', immediateRender: false }, 0.55);
     return tl;
   }
 
@@ -490,7 +482,14 @@ window.MZT = (function () {
 
   function buildPledge1() {
     const tl = gsap.timeline({ paused: true });
+    const S = MZ.S;
+    const tgm = MZ.trustGeom();
     const pb = pledgeRise(tl, 0);
+    // one scroll past its entrance, the display line lifts a touch so the
+    // stack stays a clean vertical column; as it settles, the Margin-Note
+    // annotation un-parks and draws from a fresh 0 (pure CSS fx)
+    tl.to(MZ.els.trust1, { y: tgm.yLift, duration: 0.62, ease: 'power2.inOut' }, 0.1);
+    tl.call(() => { if (MZ.els.trustAnnot) MZ.els.trustAnnot(true); }, null, 0.8);
     const D = 0.42 + 29 * 0.045 + 0.3;   // moment the grid pulse finishes
     tl.fromTo(pb.charsLbl,
       { scale: 0.2, autoAlpha: 0 },
@@ -553,9 +552,7 @@ window.MZT = (function () {
     const pgm = MZ.pledGeom();
     const fg = MZ.faqGeom();
 
-    [MZ.els.trust1, MZ.els.trust2, MZ.els.trust3].forEach((el, i) => {
-      tl.to(el, { y: tgm.y - S.vh * 0.17, autoAlpha: 0, duration: 0.6, ease: 'power2.in' }, i * 0.04);
-    });
+    tl.to(MZ.els.trust1, { y: tgm.yLift - S.vh * 0.10, autoAlpha: 0, duration: 0.6, ease: 'power2.in' }, 0.02);
     MZ.els.pledges.forEach((pb, i) => {
       tl.to(pb.el, {
         y: pgm.ys[i] - S.vh * 0.36, autoAlpha: 0, rotation: 0,
