@@ -496,6 +496,7 @@ html, body {
 .canvas .shots { position: absolute; inset: 0; opacity: 0; visibility: hidden; }
 .canvas .shots .base { position: absolute; inset: 0; background-position: 50% 50%; background-size: cover; }
 .canvas .shots .tile { position: absolute; overflow: hidden; will-change: transform; }
+.canvas .shots .tile .fill { position: absolute; inset: 0; opacity: 0; }
 .canvas .shots .tile .art { position: absolute; background-position: 50% 50%; background-size: cover; background-color: #0d0f14; }
 .cap { padding: 18px 8px 0; display: flex; flex-direction: column; gap: 4px; text-align: left; }
 .cap strong { color: #fff; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }

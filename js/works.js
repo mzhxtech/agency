@@ -6,20 +6,22 @@
    images/<project><n>.png found in the folder (cards are discovered by
    name-probe, so newly dropped screenshots join automatically).
 
-   The resolve is a staggered grid: the incoming screenshot is sliced into
-   a grid of tiles that flip on one by one (gsap stagger, random order,
-   tiny zoom settle) on top of the still-visible current screenshot.
+   The swap is a two-phase staggered wall (gsap stagger): a wall of boxes
+   in the card's own ink twirls in over the current screenshot (scale +
+   rotation, rippling out from the center), the screenshot swaps beneath
+   the closed wall, then the boxes open in the same ripple and dissolve
+   to reveal it — boxes swirled, then next image.
    The four cards run on independent clocks so swaps never happen in sync. */
 window.MZG = (function () {
   'use strict';
 
   const RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const COLS = 5, ROWS = 4;   // 20-tile resolve grid
+  const COLS = 10, ROWS = 10; // 100-box stagger wall (5x the box count)
   const HOLD = 2.6;           // seconds a screenshot rests before the next resolves
   const MAXN = 8;             // probe <slug>1..8.png, stop at the first miss
 
-  const cards = [];           // { el, canvas, shots, base, tiles[], arts[], urls[], i, shown, busy, chain }
+  const cards = [];           // { el, canvas, shots, base, tiles[], arts[], fills[], urls[], i, shown, busy, chain }
   const PRIME = new Map();    // url -> Promise<Image> — loaded AND decoded, paint-ready
   let booted = false;
 
@@ -47,6 +49,7 @@ window.MZG = (function () {
     shots.appendChild(base);
     card.tiles = [];
     card.arts = [];
+    card.fills = [];
     for (let i = 0; i < ROWS; i++) {
       for (let j = 0; j < COLS; j++) {
         const tile = document.createElement('div');
@@ -61,16 +64,24 @@ window.MZG = (function () {
         art.style.top = -(i * 100) + '%';
         tile.style.left = (j * 100 / COLS) + '%';
         tile.style.top = (i * 100 / ROWS) + '%';
+        tile.style.width = (100 / COLS) + '%';
+        tile.style.height = (100 / ROWS) + '%';
+        // the box fill sits above the art slice and paints the stagger wall
+        const fill = document.createElement('div');
+        fill.className = 'fill';
         tile.appendChild(art);
+        tile.appendChild(fill);
         shots.appendChild(tile);
         card.tiles.push(tile);
         card.arts.push(art);
+        card.fills.push(fill);
       }
     }
     const wm = canvas.querySelector('.wm');
     canvas.insertBefore(shots, wm);        // bricks below, letter mark above
     card.shots = shots;
     card.base = base;
+    card.grad = getComputedStyle(canvas).backgroundImage;   // the card's own ink for the boxes
   }
 
   /* ---------- folder discovery (future-proof: add shots, they join) ---------- */
@@ -95,9 +106,15 @@ window.MZG = (function () {
     if (card.shown) return;
     if (!card.urls.length) { card.pending = true; return; }
     card.shown = true;
-    card.base.style.backgroundImage = 'url("' + card.urls[card.i] + '")';
-    gsap.set(card.tiles, { autoAlpha: 0 });
-    prime(card.urls[card.i]).then((im) => {   // first shot decoded -> THEN fade the layer in
+    if (card.tl) { card.tl.kill(); card.tl = null; }   // a wall may be mid-flight
+    card.busy = false;
+    const url = card.urls[card.i];
+    card.base.style.backgroundImage = 'url("' + url + '")';
+    card.fills.forEach((f) => { f.style.background = card.grad; });
+    gsap.set(card.tiles, { autoAlpha: 1, scale: 1, rotation: 0 });
+    gsap.set(card.fills, { opacity: 0 });                // rest: tiles show the current image
+    card.arts.forEach((a) => { a.style.backgroundImage = 'url("' + url + '")'; });
+    prime(url).then((im) => {   // first shot decoded -> THEN fade the layer in
       if (card.shown) gsap.to(card.shots, { autoAlpha: 1, duration: RM ? 0.12 : 0.6, ease: 'power2.out' });
     });
   }
@@ -105,35 +122,50 @@ window.MZG = (function () {
   function hideCard(card) {
     if (!card.shown) return;
     card.shown = false;
+    if (card.tl) { card.tl.kill(); card.tl = null; }
+    card.busy = false;
     gsap.to(card.shots, { autoAlpha: 0, duration: 0.35, ease: 'power1.in' });
+    gsap.set(card.fills, { opacity: 0 });               // go to rest even mid-wall
+    gsap.set(card.tiles, { scale: 1, rotation: 0 });
   }
 
-  /* ---------- the staggered grid resolve: next image lands tile by tile ---------- */
+  /* ---------- the staggered grid swap ----------
+     phase 1 — a wall of boxes twirls in over the still-visible image,
+                scaling + rotating up one by one from the center out
+     (cover) — under the completed wall the old image becomes the new one
+     phase 2 — the boxes open in the same ripple and dissolve, unveiling it */
   function resolve(card) {
     const next = (card.i + 1) % card.urls.length;
     const url = card.urls[next];
     // decode the incoming screenshot first — never let tiles paint blanks
     Promise.race([prime(url), new Promise((r) => setTimeout(() => r(null), 450))]).then(() => {
       if (!card.shown) { card.busy = false; schedule(card, HOLD * 1000); return; }
+      const grid = { each: 0.009, grid: [ROWS, COLS], from: 'center' };
       card.tiles.forEach((tile, k) => {
+        card.fills[k].style.background = card.grad;
         card.arts[k].style.backgroundImage = 'url("' + url + '")';
       });
-      // visible cascade: random tile order, tiny zoom settle, one tile at a time
-      gsap.fromTo(card.tiles,
-        { autoAlpha: 0, scale: 1.16 },
-        {
-          autoAlpha: 1, scale: 1, duration: 0.6, ease: 'power2.out',
-          stagger: { each: 0.05, from: 'random' },
-          onComplete() {
-            // every tile now carries the incoming screenshot — hand the base
-            // over and tuck the tiles away for the next resolve
-            card.base.style.backgroundImage = 'url("' + url + '")';
-            gsap.set(card.tiles, { autoAlpha: 0, scale: 1 });
-            card.i = next;
-            card.busy = false;
-            schedule(card, HOLD * 1000);
-          },
-        });
+      if (card.tl) card.tl.kill();            // never two walls at once
+      card.tl = gsap.timeline({
+        onComplete() {
+          card.tl = null;
+          card.base.style.backgroundImage = 'url("' + url + '")';
+          gsap.set(card.fills, { opacity: 0 });
+          gsap.set(card.tiles, { scale: 1, rotation: 0 });
+          card.i = next;
+          card.busy = false;
+          schedule(card, HOLD * 1000);
+        },
+      });
+      card.tl.set(card.fills, { opacity: 1 }, 0);           // the wall's ink first…
+      card.tl.fromTo(card.tiles,                             // …then boxes swirl up in
+        { scale: 0, rotation: -120 },
+        { scale: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)', stagger: grid }, 0.02);
+      card.tl.call(() => {                                  // under-cover hand-off
+        card.base.style.backgroundImage = 'url("' + url + '")';
+      }, null, 1.35);                                       // wall fully closed first
+      card.tl.to(card.fills,                                // wall opens, new image unveiled
+        { opacity: 0, duration: 0.4, ease: 'power2.out', stagger: grid }, 1.39);
     });
   }
 
@@ -158,8 +190,13 @@ window.MZG = (function () {
       const name = pr.el.querySelector('.cap strong');
       const slug = (name ? name.textContent : 'project').toLowerCase().replace(/[^a-z0-9]+/g, '');
       const card = { el: pr.el, canvas, slug, urls: [], i: 0, shown: false, busy: false, chain: null };
-      build(card);
-      cards.push(card);
+      try {
+        build(card);
+        cards.push(card);
+      } catch (e) {
+        // one broken card must never take the whole page's boot down
+        console.warn('MZG: build failed for "' + slug + '"', e);
+      }
     });
     cards.forEach((card, k) => {
       setTimeout(() => { discover(card); }, 250 + k * 180);   // interleave the folder probes
@@ -180,5 +217,5 @@ window.MZG = (function () {
     });
   }
 
-  return { init, onCardLand, restSync };
+  return { init, onCardLand, restSync, stat: () => cards.map((c) => ({ slug: c.slug, shown: c.shown, busy: c.busy, imgs: c.urls.length, cur: c.urls[c.i] ? c.urls[c.i].replace(/^.*images\//, '') : '-', wall: !!c.tl })) };
 })();
