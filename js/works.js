@@ -6,11 +6,11 @@
    images/<project><n>.png found in the folder (cards are discovered by
    name-probe, so newly dropped screenshots join automatically).
 
-   The swap is a two-phase staggered wall (gsap stagger): a wall of boxes
-   in the card's own ink twirls in over the current screenshot (scale +
-   rotation, rippling out from the center), the screenshot swaps beneath
-   the closed wall, then the boxes open in the same ripple and dissolve
-   to reveal it — boxes swirled, then next image.
+   The swap is a two-phase staggered wall (gsap stagger, ~100 boxes in the
+   card's own ink): boxes fade in one by one in random order to cover the
+   current screenshot; the screenshot swaps beneath the closed wall; the
+   boxes then fade out one by one (random order again) unveiling the new
+   image — an in/out mirror of the same dissolve.
    The four cards run on independent clocks so swaps never happen in sync. */
 window.MZG = (function () {
   'use strict';
@@ -130,21 +130,19 @@ window.MZG = (function () {
   }
 
   /* ---------- the staggered grid swap ----------
-     phase 1 — a wall of boxes twirls in over the still-visible image,
-                scaling + rotating up one by one from the center out
+     phase 1 — ink boxes fade in one by one in random order, building the
+                cover over the still-visible image
      (cover) — under the completed wall the old image becomes the new one
-     phase 2 — the boxes open in the same ripple and dissolve, unveiling it */
+     phase 2 — the same random one-by-one fade runs in reverse: boxes
+                dissolve one by one, unveiling the new image */
   function resolve(card) {
     const next = (card.i + 1) % card.urls.length;
     const url = card.urls[next];
     // decode the incoming screenshot first — never let tiles paint blanks
     Promise.race([prime(url), new Promise((r) => setTimeout(() => r(null), 450))]).then(() => {
       if (!card.shown) { card.busy = false; schedule(card, HOLD * 1000); return; }
-      const grid = { each: 0.009, grid: [ROWS, COLS], from: 'center' };
-      card.tiles.forEach((tile, k) => {
-        card.fills[k].style.background = card.grad;
-        card.arts[k].style.backgroundImage = 'url("' + url + '")';
-      });
+      card.fills.forEach((f) => { f.style.background = card.grad; });   // re-ink the wall
+      card.arts.forEach((art) => { art.style.backgroundImage = 'url("' + url + '")'; });
       if (card.tl) card.tl.kill();            // never two walls at once
       card.tl = gsap.timeline({
         onComplete() {
@@ -157,15 +155,15 @@ window.MZG = (function () {
           schedule(card, HOLD * 1000);
         },
       });
-      card.tl.set(card.fills, { opacity: 1 }, 0);           // the wall's ink first…
-      card.tl.fromTo(card.tiles,                             // …then boxes swirl up in
-        { scale: 0, rotation: -120 },
-        { scale: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)', stagger: grid }, 0.02);
+      // symmetrical random one-by-one dissolves: in builds the cover, out unveils
+      card.tl.fromTo(card.fills,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3, ease: 'power2.out', stagger: { each: 0.011, from: 'random' } }, 0.02);
       card.tl.call(() => {                                  // under-cover hand-off
         card.base.style.backgroundImage = 'url("' + url + '")';
-      }, null, 1.35);                                       // wall fully closed first
-      card.tl.to(card.fills,                                // wall opens, new image unveiled
-        { opacity: 0, duration: 0.4, ease: 'power2.out', stagger: grid }, 1.39);
+      }, null, 1.44);                                       // wall fully covered first
+      card.tl.to(card.fills,
+        { opacity: 0, duration: 0.3, ease: 'power1.out', stagger: { each: 0.011, from: 'random' } }, 1.46);
     });
   }
 
