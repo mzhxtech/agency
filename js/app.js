@@ -511,6 +511,8 @@
       const active = t === 17 + k;
       gsap.set(n, { x: wg.nC.x, y: wg.nC.y, autoAlpha: active ? 1 : 0 });
     });
+    // screenshot layer follows the resting card (works.js cycler)
+    if (window.MZG && MZG.restSync) MZG.restSync(worksOn ? t - 17 : -1);
 
     // ---------- TRUST THE PROCESS (21) + pledge rows (22..24, one per scroll) ----------
     const tgm = MZ.trustGeom();
@@ -626,6 +628,7 @@
       const jb = MZ.els.jumpCta.querySelector('button');
       if (jb) jb.addEventListener('click', jumpFinale);
     }
+    if (window.MZG && MZG.init) MZG.init();   // works: screenshot cycler probes images/
     MZ.metrics();
     MZ.measureLetters();
     MZ.fitAll();

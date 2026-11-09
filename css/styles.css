@@ -489,6 +489,14 @@ html, body {
   color: rgba(255,255,255,.16);
   letter-spacing: -0.04em;
 }
+
+/* screenshot layer (works.js): fades in under the letter mark once a card
+   lands, then the staggered grid resolves through the project's shots;
+   tiles each carve their own slice out of their incoming art child */
+.canvas .shots { position: absolute; inset: 0; opacity: 0; visibility: hidden; }
+.canvas .shots .base { position: absolute; inset: 0; background-position: 50% 50%; background-size: cover; }
+.canvas .shots .tile { position: absolute; overflow: hidden; will-change: transform; }
+.canvas .shots .tile .art { position: absolute; background-position: 50% 50%; background-size: cover; background-color: #0d0f14; }
 .cap { padding: 18px 8px 0; display: flex; flex-direction: column; gap: 4px; text-align: left; }
 .cap strong { color: #fff; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
 .cap em { font-style: normal; color: #9a9aa4; font-weight: 500; line-height: 1.3; }

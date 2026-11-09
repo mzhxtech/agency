@@ -327,6 +327,9 @@ window.MZT = (function () {
         { y: 0, autoAlpha: 1, duration: 0.5, ease: 'power3.out', immediateRender: false },
         at + 0.92 + i * 0.13);
     });
+    // once the internals assemble, the project's screenshot layer settles in
+    // beneath the letter mark and the stagger-grid cycler starts (works.js)
+    tl.call(() => { if (window.MZG) MZG.onCardLand(pr); }, null, at + 1.55);
   }
 
   /* ---------- lazy cache ---------- */
