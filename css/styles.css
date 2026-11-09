@@ -55,6 +55,41 @@ html, body {
   line-height: 1.06;
   will-change: transform;
 }
+
+/* 06 Chromia — brushed-metal letters with a traveling sheen (pure CSS):
+   the gradient band sweeps through each glyph once per 2.8s cycle; data-i staggers
+   the four letters 0.7s apart so the flash travels M -> Z -> H -> X. Replaces the
+   JS glow wave (compositor-cheap, pixel-steady). Tokens above ease re-skinning;
+   the shade token is the flat rgba derivative of the ink (kept literal so the
+   effect degrades gracefully on browsers without color-mix). */
+#logoBox {
+  --mz-ink: #8a8a90;                    /* resting metal */
+  --mz-shade: rgba(138, 138, 144, .4);  /* dim derivative of the metal */
+  --mz-flash: #ffffff;                  /* sheen highlight */
+}
+.hl .self {
+  background: linear-gradient(105deg,
+      var(--mz-shade) 0 38%,
+      var(--mz-ink) 47%,
+      var(--mz-flash) 50%,
+      var(--mz-ink) 53%,
+      var(--mz-shade) 62% 100%
+    ) 0 0 / 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: mz-chrome 2.8s ease-in-out infinite;
+}
+/* the white flash crosses a glyph's center ~30% into its cycle (0.84s); delays
+   line those crossings up 0.7s apart in reading order */
+.hl[data-i="0"] .self { animation-delay: -0.84s; }
+.hl[data-i="1"] .self { animation-delay: -0.14s; }
+.hl[data-i="2"] .self { animation-delay:  0.56s; }
+.hl[data-i="3"] .self { animation-delay:  1.26s; }
+@keyframes mz-chrome {
+  0%        { background-position: 130% 0; }
+  60%, 100% { background-position: -130% 0; }
+}
 .swing { display: inline-block; will-change: transform; }
 #logoBox.hero-live .swing {
   animation: pend 2.9s ease-in-out infinite alternate;
