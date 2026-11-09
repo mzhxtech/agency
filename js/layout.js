@@ -986,13 +986,15 @@ window.MZ = (function () {
   }
 
   /* smooth traveling glow wave: each letter crawls up into white (long ease-in),
-     lingers at full brightness for a beat, then releases to gray along the exact same
-     curve and timing as the rise — the ease-out is the ease-in mirrored in time — so
-     the whole crawl / hold / release journey is seamless and slope-continuous: never
-     jerky, never snapping, mid-tones all the way. The long phases overlap letter to
-     letter, so a gradient of in-between colors travels across MZHX. During the handoff
-     a small glowing mote arcs from the fading letter to the rising one — as if it
-     carries the light over (moon drawing its light from the sun). */
+     lingers at full brightness for a beat, then releases to gray along the exact
+     same curve and timing as the rise — the ease-out is the ease-in mirrored in
+     time — and finally SETTLES at the resting gray for a beat before the next
+     crawl begins. The whole journey is seamless and slope-continuous: never
+     jerky, never snapping, colors walked evenly through the mid-tones. The long
+     phases overlap letter to letter, so a gradient of in-between colors travels
+     across MZHX. During the handoff a small glowing mote arcs from the fading
+     letter to the rising one — as if it carries the light over (moon drawing
+     its light from the sun). */
   function makeGlowWave(spans, perLetter) {
     const n = spans.length || 4;
     const rest = (getComputedStyle(spans[0]).color || 'rgb(138,138,144)').match(/\d+/g) || [138, 138, 144];
@@ -1001,11 +1003,13 @@ window.MZ = (function () {
     // glow profile, in letter-step units (1 step = perLetter seconds; the wave moves
     // one letter per step, so the travel rhythm is untouched):
     //   HOLD — linger at full white for a beat once the pulse lands
-    //   RISE = FALL — the ease-out mirrors the ease-in exactly (same duration, same
-    //          S-shaped animation), and the three phases fill the full wave cycle
-    //          (2 x RISE + HOLD === n) so no phase ever truncates on the wrap
-    const HOLD = 0.4;
-    const RISE = (n - HOLD) / 2, FALL = RISE;
+    //   REST — settle at the resting gray: the fade must dissolve into the original
+    //          color and sit there a moment before the next crawl starts
+    //   RISE = FALL — the release mirrors the ease-in exactly (same duration, same
+    //          S-shaped animation); rise + hold + fall + rest share the wave cycle
+    //          (2 x RISE + HOLD + REST === n) so no phase truncates on the wrap
+    const HOLD = 0.4, REST = 0.5;
+    const RISE = (n - HOLD - REST) / 2, FALL = RISE;
     // easing shared by both directions: a single smoothstep S — zero slope at both
     // ends (seamless into the hold at white and out again at gray) with an even,
     // steady walk through every color in between (peak speed 1.5x average; the old
@@ -1040,11 +1044,11 @@ window.MZ = (function () {
         const p = (((proxy.k - i) % n) + n) % n;
         let t = 0;
         if (p < HOLD) t = 1;                                          // sit at full white
-        else if (p < HOLD + FALL) t = bump(1 - (p - HOLD) / FALL);     // release: mirrored rise
+        else if (p < HOLD + FALL) t = bump(1 - (p - HOLD) / FALL);     // dissolve toward gray
         else {
           const u = (p - (n - RISE)) / RISE;
           if (u > 0) t = bump(u);                                     // crawl toward next white
-        }
+        }                                                             // (u <= 0: REST at gray)
         const r = Math.round(C0.r + (C1.r - C0.r) * t);
         const g2 = Math.round(C0.g + (C1.g - C0.g) * t);
         const b = Math.round(C0.b + (C1.b - C0.b) * t);
