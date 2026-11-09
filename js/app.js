@@ -12,7 +12,7 @@
   // breathing gap: after a section's entrance animation completes, the next
   // incoming scrolls are dead (absorbed) so sections feel separated; forward
   // only, snapping back is instant and never blocked
-  const GAPS = new Set([7, 8, 9, 16, 20, 24, 25]);   // ends of: services, grill, ows, flow, works, pledge rows, FAQ
+  const GAPS = new Set([7, 8, 9, 16, 20, 24, 30]);   // ends of: services, grill, ows, flow, works, pledge rows, FAQ accordion
   let gapLeft = 0;
 
   let mzhxCycle = null;
@@ -93,7 +93,11 @@
     if (busy) { queued = dir; return; }
     const next = current + dir;
     if (next < 0 || next > MZ.MAXSTEP) { nudge(dir); return; }
-    if (dir > 0 && gapLeft > 0) { gapLeft--; return; }      // section-gap scroll: stay put
+    if (dir > 0 && gapLeft > 0) {
+      gapLeft--;                                    // section-gap scroll: stay put
+      if (queued) { const qd = queued; queued = 0; tryStep(qd); }   // keep draining the pending beat
+      return;
+    }
     busy = true;
     if (dir > 0) {
       const tl = MZT.getTrans(current);
@@ -112,11 +116,18 @@
     }
   }
 
+  let queuedTimer = null;
+  function schedulePump() {
+    if (queuedTimer) clearTimeout(queuedTimer);
+    queuedTimer = setTimeout(() => { queuedTimer = null; pump(); }, 245);
+  }
   function pump() {
-    if (queued) {
+    if (queuedTimer) { clearTimeout(queuedTimer); queuedTimer = null; }
+    while (queued) {
       const d = queued;
       queued = 0;
       tryStep(d);
+      if (busy) break;   // the transition drives the rest and pumps on completion
     }
   }
 
@@ -132,7 +143,7 @@
       const dir = acc > 0 ? 1 : -1;
       acc = 0;
       if (now - lastStep > 240) { lastStep = now; tryStep(dir); }
-      else queued = dir;
+      else { queued = dir; schedulePump(); }
     }
   }, { passive: true });
 
@@ -174,7 +185,7 @@
   function applyResting() {
     const t = current;
     const S = MZ.S;
-    MZ.setLetters(t >= 26 ? 'finale' : t >= 9 ? 'header' : 'compact');
+    MZ.setLetters(t >= 31 ? 'finale' : t >= 9 ? 'header' : 'compact');
     MZ.els.logoBox.classList.toggle('hero-live', t >= 0);
 
     if (t <= 7) {
@@ -341,27 +352,27 @@
       }
     });
 
-    // ---------- FAQ grid (25) ----------
+    // ---------- FAQ accordion (steps 25..30, one question per scroll) ----------
     const fg = MZ.faqGeom();
-    gsap.set(MZ.els.faqCap, { x: S.vw / 2, y: fg.capY, autoAlpha: t === 25 ? 1 : 0 });
-    MZ.els.faqRows.forEach((row, r) => {
-      gsap.set(row, { y: r === 0 ? fg.y1 : fg.y2, autoAlpha: t === 25 ? 1 : 0 });
+    const faqOn = t >= 25 && t <= 30;
+    gsap.set(MZ.els.faqCap, { x: S.vw / 2, y: fg.capY, autoAlpha: faqOn ? 1 : 0 });
+    gsap.set(MZ.els.faqList, { xPercent: -50, x: fg.x, y: fg.topY, autoAlpha: faqOn ? 1 : 0 });
+    MZ.els.faqs.forEach((q, k) => {
+      gsap.set(q.el, { y: 0, autoAlpha: t >= 25 + k ? 1 : 0 });
+      // collapsed resting accordion (heals a snap taken mid-hover)
+      gsap.set(q.ansWrap, { height: 0, autoAlpha: 0 });
+      gsap.set(q.plus, { rotation: 0 });
     });
-    // cells return to the collapsed resting state (heals a snap taken mid-hover)
-    MZ.els.faqCells.forEach((c) => {
-      gsap.set(c.el, { flexGrow: 1 });
-      gsap.set(c.ans, { autoAlpha: 0, y: 10 });
-      gsap.set(c.plus, { rotation: 0 });
-    });
+    if (faqOn && MZ.els.faqCollapseAll) MZ.els.faqCollapseAll();
 
-    // ---------- finale / CTA (step 26) ----------
+    // ---------- finale / CTA (step 31) ----------
     const cg = MZ.ctaGeom();
-    gsap.set(MZ.els.cta1, { x: cg.l1.x, y: cg.l1.y, autoAlpha: t >= 26 ? 1 : 0 });
-    gsap.set(MZ.els.cta2, { x: cg.l2.x, y: cg.l2.y, autoAlpha: t >= 26 ? 1 : 0 });
-    gsap.set(MZ.els.cta1Words, { yPercent: t >= 26 ? 0 : 120 });
-    gsap.set(MZ.els.cta2Words, { yPercent: t >= 26 ? 0 : 120 });
-    gsap.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, scale: 1, autoAlpha: t >= 26 ? 1 : 0 });
-    gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 26 ? 1 : 0 });
+    gsap.set(MZ.els.cta1, { x: cg.l1.x, y: cg.l1.y, autoAlpha: t >= 31 ? 1 : 0 });
+    gsap.set(MZ.els.cta2, { x: cg.l2.x, y: cg.l2.y, autoAlpha: t >= 31 ? 1 : 0 });
+    gsap.set(MZ.els.cta1Words, { yPercent: t >= 31 ? 0 : 120 });
+    gsap.set(MZ.els.cta2Words, { yPercent: t >= 31 ? 0 : 120 });
+    gsap.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, scale: 1, autoAlpha: t >= 31 ? 1 : 0 });
+    gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 31 ? 1 : 0 });
 
     syncIdle(t);
   }

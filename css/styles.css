@@ -549,6 +549,7 @@ html, body {
 }
 
 /* FAQ grid */
+/* FAQ accordion list */
 #faqCap { opacity: 0; visibility: hidden; will-change: transform; }
 #faqCap .bcenter span {
   font-weight: 600;
@@ -556,72 +557,76 @@ html, body {
   text-transform: uppercase;
   color: #6f6f7a;
 }
-.faqRow {
+.faqList {
   position: absolute;
   display: flex;
-  gap: 18px;
+  flex-direction: column;
   pointer-events: auto;
   opacity: 0;
   visibility: hidden;
   will-change: transform;
 }
-.faqCell {
-  flex: 1 1 0%;
-  min-width: 0;
+.faqQ {
   position: relative;
-  overflow: hidden;
-  border: 1.5px solid rgba(255,255,255,.28);
-  border-radius: 18px;
-  background: #0f0f14;
-  box-shadow: 0 22px 48px rgba(0,0,0,.5), inset 0 0 28px rgba(255,255,255,.038);
-  padding: 18px 22px;
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  padding: 1.05em 0;
+  border-top: 1px solid rgba(255,255,255,.13);
   cursor: pointer;
-  will-change: transform, flex-grow;
+  will-change: transform;
 }
-.faqCell:hover { border-color: rgba(255,255,255,.46); }
-.fqtag {
-  display: inline-block;
-  align-self: flex-start;
-  padding: 3px 9px;
-  border: 1px solid rgba(255,255,255,.22);
-  border-radius: 7px;
-  color: rgba(255,255,255,.55);
+.faqQ:last-child { border-bottom: 1px solid rgba(255,255,255,.13); }
+.fnum {
+  flex: 0 0 auto;
+  min-width: 3.1em;
+  padding-top: .32em;
+  color: rgba(255,255,255,.32);
   font-weight: 700;
-  letter-spacing: .04em;
+  letter-spacing: .06em;
 }
 .fqq {
+  flex: 1 1 0%;
+  min-width: 0;
   color: #fff;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.01em;
-  line-height: 1.28;
-  margin-top: 11px;
+  line-height: 1.35;
+  transition: color .3s ease;
 }
-.fqa {
-  color: rgba(255,255,255,.60);
-  line-height: 1.55;
-  margin-top: 12px;
-}
+.faqQ:hover .fqq { color: #b9b9c8; }
 .fplus {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 24px;
-  height: 24px;
-  border: 1.5px solid rgba(255,255,255,.30);
+  flex: 0 0 auto;
+  position: relative;
+  width: 1.25em;
+  height: 1.25em;
+  margin-top: .22em;
+  border: 1.5px solid rgba(255,255,255,.3);
   border-radius: 50%;
 }
 .fplus i {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 10px;
-  height: 1.6px;
+  width: .55em;
+  height: 1.5px;
   background: rgba(255,255,255,.72);
 }
 .fplus i:first-child { transform: translate(-50%, -50%); }
 .fplus i:last-child  { transform: translate(-50%, -50%) rotate(90deg); }
+.fan {
+  flex: 0 0 100%;
+  overflow: hidden;
+  padding-left: 3.1em;
+  box-sizing: border-box;
+}
+.fan p {
+  margin: 0;
+  padding: .25em 0 1.05em;
+  color: rgba(255,255,255,.6);
+  line-height: 1.55;
+  max-width: 72ch;
+}
 
 /* shared masked-word behavior for the new text sections */
 #worksText .w, #cta1Text .w, #cta2Text .w {

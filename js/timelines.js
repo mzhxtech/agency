@@ -537,8 +537,16 @@ window.MZT = (function () {
     return tl;
   }
 
-  // 24 -> 25: trust line + pledge rows exit upward; the FAQ grid clicks into place
-  function buildFaqIn() {
+  // close any open FAQ answer as a new question rises in (the question above
+  // closes when the next one arrives)
+  function faqShutAll(tl, at) {
+    tl.call(() => { if (MZ.els.faqCollapseAll) MZ.els.faqCollapseAll(); }, null, at);
+  }
+
+  // 24 -> 25: pledges exit upward; the FAQ stage clicks into place — caption
+  // first, then the first question rises from the bottom of the viewport into
+  // its stack slot
+  function buildFaqQ1() {
     const tl = gsap.timeline({ paused: true });
     const S = MZ.S;
     const tgm = MZ.trustGeom();
@@ -557,15 +565,24 @@ window.MZT = (function () {
 
     tl.set(MZ.els.faqCap, { x: S.vw / 2, y: fg.capY, immediateRender: false }, 0.42);
     tl.fromTo(MZ.els.faqCap, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, immediateRender: false }, 0.42);
-    MZ.els.faqRows.forEach((row, r) => {
-      tl.set(row, { y: r === 0 ? fg.y1 : fg.y2, autoAlpha: 1, immediateRender: false }, 0.5 + r * 0.14);
-    });
-    MZ.els.faqCells.forEach((c, i) => {
-      tl.fromTo(c.el,
-        { y: S.vh * 0.075, autoAlpha: 0, scale: 0.965 },
-        { y: 0, autoAlpha: 1, scale: 1, duration: 0.62, ease: 'power3.out', immediateRender: false },
-        0.58 + i * 0.072);
-    });
+    tl.set(MZ.els.faqList, { xPercent: -50, x: fg.x, y: fg.topY, immediateRender: false }, 0.5);
+    tl.fromTo(MZ.els.faqList, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3, immediateRender: false }, 0.5);
+    faqShutAll(tl, 0.5);
+    tl.fromTo(MZ.els.faqs[0].el,
+      { y: S.vh * 0.26, autoAlpha: 0 },
+      { y: 0, autoAlpha: 1, duration: 0.72, ease: 'power3.out', immediateRender: false }, 0.6);
+    return tl;
+  }
+
+  // 25..29 -> next: one more question rises from the bottom and stacks below
+  // the previous one; an open answer closes as it arrives
+  function buildFaqQk(k) {   // k = index of the arriving question (1..5)
+    const tl = gsap.timeline({ paused: true });
+    const S = MZ.S;
+    faqShutAll(tl, 0.02);
+    tl.fromTo(MZ.els.faqs[k].el,
+      { y: S.vh * 0.26, autoAlpha: 0 },
+      { y: 0, autoAlpha: 1, duration: 0.72, ease: 'power3.out', immediateRender: false }, 0.3);
     return tl;
   }
 
@@ -578,8 +595,8 @@ window.MZT = (function () {
     const cg = MZ.ctaGeom();
     const fl = MZ.finaleLayout();
 
-    MZ.els.faqRows.forEach((row, r) => {
-      tl.to(row, { y: (r === 0 ? fg.y1 : fg.y2) - S.vh * 0.14, autoAlpha: 0, duration: 0.55, ease: 'power2.in' }, 0.04 + r * 0.06);
+    MZ.els.faqs.forEach((q, k) => {
+      tl.to(q.el, { y: -S.vh * 0.16, autoAlpha: 0, duration: 0.5, ease: 'power2.in' }, 0.05 + k * 0.03);
     });
     tl.to(MZ.els.faqCap, { y: fg.capY - S.vh * 0.07, autoAlpha: 0, duration: 0.4, ease: 'power2.in' }, 0.05);
 
@@ -630,7 +647,8 @@ window.MZT = (function () {
         : i === 21 ? buildPledge1()
         : i === 22 ? buildPledge2()
         : i === 23 ? buildPledge3()
-        : i === 24 ? buildFaqIn()
+        : i === 24 ? buildFaqQ1()
+        : i >= 25 && i <= 29 ? buildFaqQk(i - 24)
         : buildFinale();
     }
     return cache[i];

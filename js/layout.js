@@ -40,7 +40,7 @@ window.MZ = (function () {
     ],
     foot: '© MZHX Studio — slow-grilled w/ intent · Dribbble · GitHub · X',
   };
-  const MAXSTEP = 26;      // resting steps: 0..7 services, 8 grill, 9 ows, 10..16 flow (15 publish, 16 feedback loop), 17..20 works (4 projects), 21 trust, 22..24 pledge rows (one per scroll), 25 faqs, 26 finale/CTA
+  const MAXSTEP = 31;      // resting steps: 0..7 services, 8 grill, 9 ows, 10..16 flow (15 publish, 16 feedback loop), 17..20 works (4 projects), 21 trust, 22..24 pledge rows (one per scroll), 25..30 FAQ accordion (one question per scroll), 31 finale/CTA
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -269,7 +269,8 @@ window.MZ = (function () {
       return { el: a, box: c, lbl, desc, finalTxt: t.txt, charsLbl, charsDesc };
     });
 
-    // ---------- FAQ grid: caption + two flex rows of toggle cells ----------
+    // ---------- FAQ accordion: caption + stacked question rows; each question
+    // appears on its own scroll, hover expands its answer ----------
     els.faqCap = document.createElement('div');
     els.faqCap.className = 'posbase'; els.faqCap.id = 'faqCap';
     const fCap = document.createElement('span'); fCap.className = 'bcenter';
@@ -277,69 +278,56 @@ window.MZ = (function () {
     fCap.appendChild(fCapS); els.faqCap.appendChild(fCap);
     els.nextLayer.appendChild(els.faqCap);
 
-    els.faqRows = [0, 1].map(() => {
+    els.faqList = document.createElement('div');
+    els.faqList.className = 'faqList';
+    els.nextLayer.appendChild(els.faqList);
+
+    els.faqs = data.faqs.map((f, i) => {
       const row = document.createElement('div');
-      row.className = 'faqRow';
-      els.nextLayer.appendChild(row);
-      return row;
-    });
-    els.faqCells = [];
-    data.faqs.forEach((f, i) => {
-      const cell = document.createElement('div');
-      cell.className = 'faqCell';
-      cell.innerHTML = '<span class="fplus"><i></i><i></i></span>' +
-        '<span class="fqtag">Q</span><h4 class="fqq"></h4><div class="fqa"></div>';
-      cell.querySelector('.fqq').textContent = f.q;
-      cell.querySelector('.fqa').textContent = f.a;
-      els.faqRows[Math.floor(i / 3)].appendChild(cell);
-      const rec = {
-        el: cell,
-        ans: cell.querySelector('.fqa'),
-        plus: cell.querySelector('.fplus'),
-        row: els.faqRows[Math.floor(i / 3)],
-        rowIdx: Math.floor(i / 3),
-        sibs: [],
-      };
-      els.faqCells.push(rec);
-    });
-    els.faqCells.forEach((c) => {
-      c.sibs = els.faqCells.filter((o) => o.row === c.row && o !== c);
+      row.className = 'faqQ';
+      const num = document.createElement('span'); num.className = 'fnum';
+      num.textContent = (i < 9 ? '0' : '') + (i + 1);
+      const qEl = document.createElement('h4'); qEl.className = 'fqq';
+      qEl.textContent = f.q;
+      const plus = document.createElement('span'); plus.className = 'fplus';
+      plus.innerHTML = '<i></i><i></i>';
+      const ansWrap = document.createElement('div'); ansWrap.className = 'fan';
+      const ansP = document.createElement('p'); ansP.textContent = f.a;
+      ansWrap.appendChild(ansP);
+      row.appendChild(num); row.appendChild(qEl); row.appendChild(plus); row.appendChild(ansWrap);
+      els.faqList.appendChild(row);
+      return { el: row, num, qEl, ansWrap, plus, ansP };
     });
 
-    // ---------- FAQ accordion: hover a cell and it expands — no click needed;
-    // pointer out of a row collapses it again (touch taps also expand) ----------
+    // ---------- FAQ accordion: hover a row and the answer expands beneath it —
+    // no click needed; leaving the row collapses it again after a short grace
+    // (touch taps also expand). New questions rising in close any open one. ----------
     let faqOpen = null;
     let closeTimer = null;
     const cancelClose = () => { if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; } };
-    const closeFaq = (c) => {
-      if (!c) return;
-      gsap.to(c.el, { flexGrow: 1, duration: 0.5, ease: 'power3.inOut' });
-      c.sibs.forEach((s) => gsap.to(s.el, { flexGrow: 1, duration: 0.5, ease: 'power3.inOut' }));
-      gsap.to(c.ans, { autoAlpha: 0, y: 10, duration: 0.3, ease: 'power2.in' });
-      gsap.to(c.plus, { rotation: 0, duration: 0.36, ease: 'power3.inOut' });
+    const closeFaq = (q) => {
+      if (!q) return;
+      gsap.to(q.ansWrap, { height: 0, autoAlpha: 0, duration: 0.42, ease: 'power3.inOut', overwrite: 'auto' });
+      gsap.to(q.plus, { rotation: 0, duration: 0.36, ease: 'power3.inOut', overwrite: 'auto' });
     };
-    const openFaq = (c) => {
-      gsap.to(c.el, { flexGrow: 2.36, duration: 0.55, ease: 'power3.inOut' });
-      c.sibs.forEach((s) => gsap.to(s.el, { flexGrow: 0.435, duration: 0.5, ease: 'power3.inOut' }));
-      gsap.to(c.ans, { autoAlpha: 1, y: 0, duration: 0.45, delay: 0.14, ease: 'power3.out' });
-      gsap.to(c.plus, { rotation: 135, duration: 0.42, ease: 'power3.inOut' });
+    const openFaq = (q) => {
+      gsap.to(q.ansWrap, { height: 'auto', autoAlpha: 1, duration: 0.5, ease: 'power3.inOut', overwrite: 'auto' });
+      gsap.to(q.plus, { rotation: 135, duration: 0.42, ease: 'power3.inOut', overwrite: 'auto' });
     };
-    const activate = (c) => {
+    const activate = (q) => {
       cancelClose();
-      if (c === faqOpen) return;
+      if (q === faqOpen) return;
       if (faqOpen) closeFaq(faqOpen);
-      openFaq(c);
-      faqOpen = c;
+      openFaq(q);
+      faqOpen = q;
     };
-    els.faqCells.forEach((c) => {
-      c.el.addEventListener('mouseenter', () => activate(c));
-      c.el.addEventListener('click', () => activate(c));   // touch fallback
-    });
-    els.faqRows.forEach((row) => {
-      row.addEventListener('mouseleave', () => {
-        if (!faqOpen) return;
+    els.faqs.forEach((q) => {
+      q.el.addEventListener('mouseenter', () => activate(q));
+      q.el.addEventListener('click', () => activate(q));   // touch fallback
+      q.el.addEventListener('mouseleave', () => {
+        if (faqOpen !== q) return;
         cancelClose();
-        closeTimer = setTimeout(() => { if (faqOpen) { closeFaq(faqOpen); faqOpen = null; } closeTimer = null; }, 160);
+        closeTimer = setTimeout(() => { if (faqOpen === q) { closeFaq(q); faqOpen = null; } closeTimer = null; }, 160);
       });
     });
     els.faqCollapseAll = () => { cancelClose(); if (faqOpen) { closeFaq(faqOpen); faqOpen = null; } };
@@ -676,18 +664,16 @@ window.MZ = (function () {
     };
   }
 
-  /* FAQ grid: small caption + two full-width flex rows of three cells */
+  /* FAQ accordion: caption + stacked question rows anchored under it */
   function faqGeom() {
-    const rowH = S.vh * 0.252;
-    const y1 = S.vh * 0.215;
+    const qf = Math.min(S.vw * 0.0165, S.vh * 0.032);
+    const af = Math.min(S.vw * 0.0122, S.vh * 0.019);
     return {
-      capY: S.vh * 0.14,
-      rowX: S.vw * 0.052,
-      rowW: S.vw * 0.896,
-      rowH,
-      y1,
-      y2: y1 + rowH + S.vh * 0.021,
-      gap: S.vw * 0.016,
+      capY: S.vh * 0.135,
+      x: S.vw / 2,
+      topY: S.vh * 0.215,
+      w: S.vw * 0.74,
+      qf, af,
     };
   }
 
@@ -899,26 +885,20 @@ window.MZ = (function () {
       gsap.set(pb.el, { x: pgm.x, y: pgm.ys[i], rotation: 0, scale: 1, autoAlpha: 0 });
     });
 
-    // FAQ grid: caption + rows sized; cells reset to collapsed resting state
+    // FAQ accordion: caption + list sized; rows reset to collapsed resting state
     const fg = faqGeom();
     gsap.set(els.faqCap, { x: S.vw / 2, y: fg.capY, autoAlpha: 0 });
     els.faqCap.querySelector('span').style.fontSize = Math.min(S.vw * 0.0125, 14.5) + 'px';
-    const qFs = clamp(Math.min(S.vw * 0.0135, S.vh * 0.021), 12, 16.5);
-    const aFs = clamp(Math.min(S.vw * 0.0122, S.vh * 0.019), 11, 14);
-    els.faqRows.forEach((row, r) => {
-      row.style.left = fg.rowX + 'px';
-      row.style.top = '0px';
-      row.style.width = fg.rowW + 'px';
-      row.style.height = fg.rowH + 'px';
-      gsap.set(row, { x: 0, y: r === 0 ? fg.y1 : fg.y2, autoAlpha: 0 });
-    });
-    els.faqCells.forEach((c) => {
-      c.el.querySelector('.fqq').style.fontSize = qFs + 'px';
-      c.el.querySelector('.fqtag').style.fontSize = Math.max(9.5, qFs * 0.72) + 'px';
-      c.ans.style.fontSize = aFs + 'px';
-      gsap.set(c.el, { flexGrow: 1, y: 0 });
-      gsap.set(c.ans, { autoAlpha: 0, y: 10 });
-      gsap.set(c.plus, { rotation: 0 });
+    els.faqList.style.width = fg.w + 'px';
+    els.faqList.style.gap = Math.max(0, S.vh * 0.009) + 'px';
+    gsap.set(els.faqList, { xPercent: -50, x: fg.x, y: fg.topY, autoAlpha: 0 });
+    els.faqs.forEach((q) => {
+      q.el.style.fontSize = fg.qf + 'px';          // row paddings/icons scale off this
+      q.num.style.fontSize = Math.max(10, fg.qf * 0.6) + 'px';
+      q.ansP.style.fontSize = fg.af + 'px';
+      gsap.set(q.el, { y: 0, autoAlpha: 0 });
+      gsap.set(q.ansWrap, { height: 0, autoAlpha: 0 });
+      gsap.set(q.plus, { rotation: 0 });
     });
     if (els.faqCollapseAll) els.faqCollapseAll();
 
