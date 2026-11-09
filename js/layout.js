@@ -383,6 +383,8 @@ window.MZ = (function () {
     const pC = document.createElement('span'); pC.className = 'bcenter';
     const pS = document.createElement('span'); pS.textContent = 'hello@mzhx.studio';
     pC.appendChild(pS); els.pill.appendChild(pC);
+    // interactive booking pill replaces the mail pill (fallback keeps the plain text if it failed)
+    if (MZ.buildBooking) MZ.buildBooking(els.pill);
     els.nextLayer.appendChild(els.pill);
 
     els.footLine = document.createElement('div');
@@ -939,7 +941,7 @@ window.MZ = (function () {
     gsap.set(els.cta1, { x: ctg.l1.x - els.ctaFullW[0] / 2, y: ctg.l1.y, autoAlpha: 0 });
     gsap.set(els.cta2, { x: ctg.l2.x - els.ctaFullW[1] / 2, y: ctg.l2.y, autoAlpha: 0 });
     if (els.ctaType) els.ctaType(false);
-    els.pill.querySelector('span').style.fontSize = Math.min(S.vw * 0.017, 21) + 'px';
+    if (!MZ.buildBooking) els.pill.querySelector('span').style.fontSize = Math.min(S.vw * 0.017, 21) + 'px';
     gsap.set(els.pill, { xPercent: -50, yPercent: -50, x: ctg.pill.x, y: ctg.pill.y, scale: 1, autoAlpha: 0 });
     els.footLine.querySelector('span').style.fontSize = Math.min(13.5, S.vw * 0.011) + 'px';
     gsap.set(els.footLine, { xPercent: -50, yPercent: -50, x: S.vw / 2, y: ctg.foot, autoAlpha: 0 });

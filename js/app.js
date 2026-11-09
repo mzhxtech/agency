@@ -377,6 +377,7 @@
     // typed lines park off-finale (fresh type on every arrival)
     if (MZ.els.ctaType) MZ.els.ctaType(t >= 31);
     gsap.set(MZ.els.pill, { x: cg.pill.x, y: cg.pill.y, scale: 1, autoAlpha: t >= 31 ? 1 : 0 });
+    if (t < 31 && MZ.bookingReset) MZ.bookingReset();   // pill parks -> booking flow resets
     gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 31 ? 1 : 0 });
 
     syncIdle(t);
