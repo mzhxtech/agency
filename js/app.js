@@ -8,6 +8,8 @@
   let busy = true;
   let queued = 0;        // pending direction (max 1)
   let lastStep = 0;      // timestamp guard
+  const MZR = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let jumping = false;   // a jump-CTA flight is in progress
 
   // breathing gap: after a section's entrance animation completes, the next
   // incoming scrolls are dead (absorbed) so sections feel separated; forward
@@ -84,6 +86,7 @@
     busy = false;
     gapLeft = GAPS.has(current) ? 2 : 0;   // arm the dead-scroll beat after a section end
     syncIdle(current);
+    jumpSpawn();
     if (resnapPending) { resnapPending = false; reSnap(); }
     pump();
   }
@@ -129,6 +132,113 @@
       tryStep(d);
       if (busy) break;   // the transition drives the rest and pumps on completion
     }
+  }
+
+  /* ---------- jump CTA chip entrance (one-time) ----------
+     Arrives exactly when "Mobile App Development" shows on the right —
+     service 1 becomes visible from resting step 1 — then rides above the
+     MZHX wordmark until the finale parks it. */
+  function jumpSpawn() {
+    const chip = MZ.els.jumpCta;
+    if (!chip || !MZ.jumpCtaGeom) return;
+    if (MZ.jumpIn || current < 1 || current > 30) return;
+    MZ.jumpIn = true;
+    const jg = MZ.jumpCtaGeom(current >= 9 ? 'header' : 'compact');
+    if (MZR) { gsap.set(chip, { x: jg.x, y: jg.y, scale: 1, rotation: 0, autoAlpha: 1 }); return; }
+    // flies in from the left while spinning; lands with a little overshoot
+    gsap.fromTo(chip,
+      { x: jg.x - MZ.S.vw * 0.48, y: jg.y, rotation: -270, scale: 0.55, autoAlpha: 0 },
+      { x: jg.x, y: jg.y, rotation: 0, scale: 1, autoAlpha: 1, duration: 0.95, ease: 'back.out(1.2)' });
+  }
+
+  /* ---------- jump CTA: skip the whole journey, land on the finale ----------
+     Click → particles burst from the chip while a stage-colored wash swallows
+     the viewport → under the cover the machine plants resting step 30 and
+     plays the real finale transition (30→31) → ~2s later the cover eases away
+     mid-composition (word settled, teletype typing, pill expanding) and the
+     booking flow pre-opens on its first step (date). */
+  function jumpFinale() {
+    if (jumping || busy || current < 1 || current >= 31) return;
+    jumping = true;
+    busy = true; queued = 0;    // hold the machine for the whole flight
+    const chip = MZ.els.jumpCta;
+    if (chip) gsap.to(chip, { autoAlpha: 0, duration: 0.35, ease: 'power1.in' });
+
+    if (MZR) {   // honor reduced motion: one instant cut, no fog
+      current = 31;
+      applyResting();
+      afterStep();
+      if (MZ.bookingOpen) MZ.bookingOpen();
+      jumping = false;
+      return;
+    }
+
+    // burst origin = the button the audience clicked (the anchor is a 0-size point)
+    const btn = chip ? chip.querySelector('button') : null;
+    const r = btn ? btn.getBoundingClientRect() : { left: 40, top: 40, width: 0, height: 0 };
+    const ox = r.left + r.width / 2;
+    const oy = r.top + r.height / 2;
+
+    // stage-colored disc grows from the chip until it swallows the screen
+    const diag = Math.hypot(window.innerWidth, window.innerHeight);
+    const wash = document.createElement('div');
+    wash.className = 'jump-wash';
+    const washSz = diag * 1.15;
+    wash.style.width = wash.style.height = washSz + 'px';
+    wash.style.marginLeft = wash.style.marginTop = -(washSz / 2) + 'px';
+    wash.style.transform = 'translate(' + ox + 'px,' + oy + 'px) scale(0)';
+    document.body.appendChild(wash);
+    gsap.to(wash, { scale: 1, duration: 0.95, ease: 'power3.inOut' });
+
+    // burst: one outline ring + small particles from the chip origin
+    const ring = document.createElement('div');
+    ring.className = 'jump-ring';
+    document.body.appendChild(ring);
+    gsap.set(ring, { x: ox, y: oy });
+    gsap.fromTo(ring, { scale: 0.35, opacity: 0.95 },
+      { scale: 3.6, opacity: 0, duration: 1.05, ease: 'power2.out', onComplete: () => ring.remove() });
+    const COLS = ['#FFFFFF', '#FFFFFF', '#FFFFFF', '#FF4FD8', '#4FF8FF'];
+    for (let i = 0; i < 34; i++) {
+      const d = document.createElement('div');
+      d.className = 'jump-dot';
+      const sz = 2 + Math.random() * 5;
+      const a = Math.random() * Math.PI * 2;
+      const dist = (0.10 + Math.random() * 0.42) * window.innerWidth;
+      d.style.width = sz + 'px';
+      d.style.height = sz + 'px';
+      d.style.background = COLS[(Math.random() * COLS.length) | 0];
+      d.style.left = (ox - sz / 2) + 'px';
+      d.style.top = (oy - sz / 2) + 'px';
+      document.body.appendChild(d);
+      gsap.fromTo(d, { x: 0, y: 0, scale: 1, opacity: 1 }, {
+        x: Math.cos(a) * dist,
+        y: Math.sin(a) * dist - window.innerHeight * 0.04,
+        scale: 0.2, opacity: 0,
+        duration: 0.75 + Math.random() * 0.5,
+        delay: Math.random() * 0.08,
+        ease: 'expo.out',
+        onComplete: () => d.remove(),
+      });
+    }
+
+    // cover is up: plant resting-30 and play the real finale transition,
+    // reusing the step machine's own completion bookkeeping
+    setTimeout(() => {
+      current = 30;
+      applyResting();
+      const tl = MZT.getTrans(30);
+      tl.eventCallback('onComplete', () => { jumping = false; current = 31; afterStep(); });
+      tl.eventCallback('onReverseComplete', null);
+      tl.play(0);
+    }, 1000);
+
+    // ~2s of finale composition happen under the cover, then it eases away:
+    // the booking shell expands onto its first step as the page reveals
+    setTimeout(() => {
+      gsap.to(wash, { scale: 1.18, opacity: 0, duration: 0.65, ease: 'power2.inOut', onComplete: () => wash.remove() });
+      if (chip) gsap.set(chip, { autoAlpha: 0 });
+      if (MZ.bookingOpen) MZ.bookingOpen();
+    }, 3000);
   }
 
   /* ---------- input: wheel ---------- */
@@ -380,6 +490,14 @@
     if (t < 31 && MZ.bookingReset) MZ.bookingReset();   // pill parks -> booking flow resets
     gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 31 ? 1 : 0 });
 
+    // ---------- jump CTA chip: rides above the wordmark, parked at the finale ----------
+    if (MZ.els.jumpCta && MZ.jumpCtaGeom) {
+      const jg = MZ.jumpCtaGeom(t >= 9 ? 'header' : 'compact');
+      // tucked during a jump flight so the finishing sequence never re-shows it
+      gsap.set(MZ.els.jumpCta, { x: jg.x, y: jg.y, scale: 1, rotation: 0,
+        autoAlpha: t >= 1 && t <= 30 && !jumping ? 1 : 0 });
+    }
+
     syncIdle(t);
   }
 
@@ -423,6 +541,10 @@
 
   function boot() {
     MZ.buildDOM();
+    if (MZ.els.jumpCta) {
+      const jb = MZ.els.jumpCta.querySelector('button');
+      if (jb) jb.addEventListener('click', jumpFinale);
+    }
     MZ.metrics();
     MZ.measureLetters();
     MZ.fitAll();

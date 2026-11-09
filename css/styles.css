@@ -1025,3 +1025,54 @@ html, body {
   text-transform: uppercase;
   font-weight: 500;
 }
+
+/* ---------- jump CTA chip ----------
+   Flies in from the left above the MZHX wordmark and reuses the booking
+   pill's idle look (.bk / .bk-ring). The booking tokens are scoped here
+   because the chip sits outside the .bk-shell that normally owns them. */
+#jumpCta {
+  --bk-ink: #0F191E;
+  --bk-surf: #fff;
+  z-index: 30;
+  will-change: transform;
+}
+#jumpCta .bk {
+  font: 600 13px/1.5 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+#jumpCta .bk:active { transform: translateY(1px); }
+
+/* one-shot jump transition: stage-colored disc swallows the viewport while
+   an outline ring + small particles burst from the chip (transient DOM) */
+.jump-wash {
+  position: fixed;
+  left: 0; top: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #0B0D13 0%, #050507 64%);
+  z-index: 60;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.jump-ring {
+  position: fixed;
+  left: 0; top: 0;
+  width: 120px; height: 120px;
+  margin-left: -60px; margin-top: -60px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, .85);
+  z-index: 61;
+  pointer-events: none;
+}
+.jump-dot {
+  position: fixed;
+  left: 0; top: 0;
+  border-radius: 50%;
+  z-index: 62;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jump-wash, .jump-ring, .jump-dot { display: none; }
+  #jumpCta { transition: none; }
+}

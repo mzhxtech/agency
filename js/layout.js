@@ -394,6 +394,19 @@ window.MZ = (function () {
     fC.appendChild(fS); els.footLine.appendChild(fC);
     els.nextLayer.appendChild(els.footLine);
 
+    // jump CTA chip: flies in from the left above the MZHX wordmark; clicking
+    // it skips the whole journey and lands on the finale (app.js wires the click)
+    els.jumpCta = document.createElement('div');
+    els.jumpCta.className = 'posbase'; els.jumpCta.id = 'jumpCta';
+    const jC = document.createElement('span'); jC.className = 'bcenter';
+    const jB = document.createElement('button');
+    jB.type = 'button'; jB.className = 'bk bk-ring';
+    jB.setAttribute('aria-label', 'Skip to the booking finale');
+    const jL = document.createElement('span'); jL.className = 'bk-label';
+    jL.textContent = 'Book Scoping Call';
+    jB.appendChild(jL); jC.appendChild(jB); els.jumpCta.appendChild(jC);
+    els.app.appendChild(els.jumpCta);
+
     // box labels
     els.planLbl   = els.plan.querySelector('.bli');
     els.designLbl = els.design.querySelector('.bli');
@@ -457,6 +470,15 @@ window.MZ = (function () {
     els.letterFs = parseFloat(getComputedStyle(els.letters[0].querySelector('.self')).fontSize);
     els.letterGap = els.letterFs * 0.10;
     els.wordSpan = els.letterW.reduce((a, b) => a + b, 0) + els.letterGap * 3;
+    // unscaled anchor->glyph offsets (normalized by the letter's live scale,
+    // so the numbers stay valid whatever arrangement is showing)
+    const a0 = els.letters[0].getBoundingClientRect();
+    const g0 = els.letters[0].querySelector('.self').getBoundingClientRect();
+    const sc = Math.abs(parseFloat(gsap.getProperty(els.letters[0], 'scaleX')) || 1) || 1;
+    const off = (g0.top - a0.top) / sc;
+    if (Math.abs(off) < 4000) els.letterTopOff = off;
+    const visH = g0.height / sc;
+    if (visH > 0 && visH < 4000) els.letterVisH = visH;
   }
 
   /* stacked intro: letters centered in the viewport, filling full height */
@@ -494,6 +516,21 @@ window.MZ = (function () {
 
   /* ---------------- right stage geometry ---------------- */
   const midPos = () => ({ x: S.pw * 0.5, y: S.ph * 0.52 });
+
+  /* jump CTA chip: hugs the MZHX wordmark — centered over the word span,
+     above it whenever there is headroom (compact rest), tucked below the
+     strip when the word parks in the top header (no room above it there) */
+  function jumpCtaGeom(mode) {
+    const lay = mode === 'header' ? headerLayout() : compactLayout();
+    const p0 = lay.pos(0), p3 = lay.pos(3);
+    const btn = els.jumpCta.querySelector('button');
+    const bh = btn ? btn.offsetHeight : 46;
+    const gap = Math.max(14, S.vh * 0.016);
+    const glyphTop = lay.y + lay.s * (els.letterTopOff || -els.letterFs * 0.42);
+    const above = glyphTop - gap - bh / 2;
+    const below = glyphTop + lay.s * (els.letterVisH || els.letterFs) + gap + bh / 2;
+    return { x: (p0.x + p3.x) / 2, y: mode === 'header' ? below : above };
+  }
 
   /* right-column stack: 7 service rows + YITL fill the panel height with
      equal spacing — the column sits right of the river and uses its full width */
@@ -946,6 +983,10 @@ window.MZ = (function () {
     els.footLine.querySelector('span').style.fontSize = Math.min(13.5, S.vw * 0.011) + 'px';
     gsap.set(els.footLine, { xPercent: -50, yPercent: -50, x: S.vw / 2, y: ctg.foot, autoAlpha: 0 });
 
+    // jump CTA chip parks hidden until its entrance step (app.js applies it)
+    const jg = jumpCtaGeom('compact');
+    gsap.set(els.jumpCta, { x: jg.x, y: jg.y, scale: 1, rotation: 0, autoAlpha: 0 });
+
     // ---------- river canvas + boat sizing ----------
     const riverW = clamp(S.vh * 0.105, 62, 128);
     MZ.riverW = riverW;
@@ -1155,7 +1196,7 @@ window.MZ = (function () {
     encapBounds, groupGeom, groupPt, execGeom, testerGeom,
     owsCenter, owsTop, arrow1Geom, arrow2Geom, arrow3Geom, publishGeom,
     loopGeom, arrow4Geom, arrow5Geom, arrow6Geom,
-    worksGeom, trustGeom, pledGeom, faqGeom, finaleLayout, ctaGeom,
+    worksGeom, trustGeom, pledGeom, faqGeom, finaleLayout, ctaGeom, jumpCtaGeom,
     boat, placeBoat,
     setLetters, setServiceResting,
     makeLetterCycle, makeGlowWave, fitText, clamp,

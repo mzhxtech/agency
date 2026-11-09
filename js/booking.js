@@ -332,6 +332,13 @@
     render();
   }
 
+  /* jump CTA hook: open the flow straight onto its first step (date);
+     a no-op if the flow already left its idle state */
+  MZ.bookingOpen = function () {
+    if (!shell || st !== 'idle') return;
+    st = 'date'; view = 'main'; render();
+  };
+
   MZ.buildBooking = buildHost;
   MZ.bookingReset = reset;
 })();
