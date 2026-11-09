@@ -517,19 +517,29 @@ window.MZ = (function () {
   /* ---------------- right stage geometry ---------------- */
   const midPos = () => ({ x: S.pw * 0.5, y: S.ph * 0.52 });
 
-  /* jump CTA chip: hugs the MZHX wordmark — centered over the word span,
-     above it whenever there is headroom (compact rest), tucked below the
-     strip when the word parks in the top header (no room above it there) */
+  /* jump CTA chip placement — the chip is one persistent companion:
+     'compact' — hugs the mid-left wordmark, centered above its word span
+                 (steps 1..8, until MZHX re-lays to the top strip)
+     'corner'  — pinned to the viewport top right (a reserved home it holds
+                 in every section from 9 on, aligned with the header strip) */
   function jumpCtaGeom(mode) {
-    const lay = mode === 'header' ? headerLayout() : compactLayout();
+    if (mode === 'corner') {
+      const btn = els.jumpCta ? els.jumpCta.querySelector('button') : null;
+      const bw = (btn && btn.offsetWidth) || 190;
+      const bh = (btn && btn.offsetHeight) || 46;
+      return {
+        x: S.vw - Math.max(20, S.vw * 0.028) - bw / 2,
+        y: Math.max(bh / 2 + 12, S.vh * 0.075),
+      };
+    }
+    const lay = compactLayout();
     const p0 = lay.pos(0), p3 = lay.pos(3);
     const btn = els.jumpCta.querySelector('button');
     const bh = btn ? btn.offsetHeight : 46;
     const gap = Math.max(14, S.vh * 0.016);
     const glyphTop = lay.y + lay.s * (els.letterTopOff || -els.letterFs * 0.42);
     const above = glyphTop - gap - bh / 2;
-    const below = glyphTop + lay.s * (els.letterVisH || els.letterFs) + gap + bh / 2;
-    return { x: (p0.x + p3.x) / 2, y: mode === 'header' ? below : above };
+    return { x: (p0.x + p3.x) / 2, y: above };
   }
 
   /* right-column stack: 7 service rows + YITL fill the panel height with

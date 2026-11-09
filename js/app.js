@@ -136,14 +136,15 @@
 
   /* ---------- jump CTA chip entrance (one-time) ----------
      Arrives exactly when "Mobile App Development" shows on the right —
-     service 1 becomes visible from resting step 1 — then rides above the
-     MZHX wordmark until the finale parks it. */
+     service 1 becomes visible from resting step 1 — parked above the
+     mid-left wordmark; when MZHX re-lays to the top strip (step 9), the
+     header move glides it into its top-right home for every later section. */
   function jumpSpawn() {
     const chip = MZ.els.jumpCta;
     if (!chip || !MZ.jumpCtaGeom) return;
     if (MZ.jumpIn || current < 1 || current > 30) return;
     MZ.jumpIn = true;
-    const jg = MZ.jumpCtaGeom(current >= 9 ? 'header' : 'compact');
+    const jg = MZ.jumpCtaGeom(current >= 9 ? 'corner' : 'compact');
     if (MZR) { gsap.set(chip, { x: jg.x, y: jg.y, scale: 1, rotation: 0, autoAlpha: 1 }); return; }
     // flies in from the left while spinning; lands with a little overshoot
     gsap.fromTo(chip,
@@ -161,6 +162,7 @@
     if (jumping || busy || current < 1 || current >= 31) return;
     jumping = true;
     busy = true; queued = 0;    // hold the machine for the whole flight
+    MZ.chipFlightSkip = true;   // the button dissolves at takeoff — its docked twin owns the finale CTA
     const chip = MZ.els.jumpCta;
     if (chip) gsap.to(chip, { autoAlpha: 0, duration: 0.35, ease: 'power1.in' });
 
@@ -169,6 +171,7 @@
       applyResting();
       afterStep();
       if (MZ.bookingOpen) MZ.bookingOpen();
+      MZ.chipFlightSkip = false;
       jumping = false;
       return;
     }
@@ -288,7 +291,9 @@
       current = 30;
       applyResting();
       const tl = MZT.getTrans(30);
-      tl.eventCallback('onComplete', () => { jumping = false; current = 31; afterStep(); });
+      tl.eventCallback('onComplete', () => {
+        jumping = false; current = 31; MZ.chipFlightSkip = false; afterStep();
+      });
       tl.eventCallback('onReverseComplete', null);
       tl.play(0);
     }, 1000);
@@ -559,12 +564,19 @@
     if (t < 31 && MZ.bookingReset) MZ.bookingReset();   // pill parks -> booking flow resets
     gsap.set(MZ.els.footLine, { x: S.vw / 2, y: cg.foot, autoAlpha: t >= 31 ? 1 : 0 });
 
-    // ---------- jump CTA chip: rides above the wordmark, parked at the finale ----------
+    // ---------- jump CTA chip: persistent companion — above the mid-left
+    // wordmark (steps 1..8), pinned top right from 9 on; arriving at the
+    // finale it flies down and fades into its idle twin at the CTA slot,
+    // so the resting state keeps it parked hidden there (the twin owns the slot) ----------
     if (MZ.els.jumpCta && MZ.jumpCtaGeom) {
-      const jg = MZ.jumpCtaGeom(t >= 9 ? 'header' : 'compact');
-      // tucked during a jump flight so the finishing sequence never re-shows it
-      gsap.set(MZ.els.jumpCta, { x: jg.x, y: jg.y, scale: 1, rotation: 0,
-        autoAlpha: t >= 1 && t <= 30 && !jumping ? 1 : 0 });
+      if (t === 31) {
+        gsap.set(MZ.els.jumpCta, { autoAlpha: 0 });   // docked: the booking twin owns the CTA slot
+      } else {
+        const jg = MZ.jumpCtaGeom(t >= 9 ? 'corner' : 'compact');
+        // tucked during a jump flight so the finishing sequence never re-shows it
+        gsap.set(MZ.els.jumpCta, { x: jg.x, y: jg.y, scale: 1, rotation: 0,
+          autoAlpha: t >= 1 && !jumping ? 1 : 0 });
+      }
     }
 
     syncIdle(t);

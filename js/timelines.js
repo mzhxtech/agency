@@ -168,6 +168,16 @@ window.MZT = (function () {
       tl.to(el, { x: hl.pos(i).x, y: hl.y, scale: hl.s, duration: 1.05, ease: 'power4.inOut' }, 0.08 + i * 0.045);
     });
 
+    // persistent companion rides along: the Book Scoping Call chip leaves its
+    // spot over the mid-left wordmark and claims the top-right home it keeps
+    // in every later section, landing with a small overshoot settle
+    const jc = MZ.jumpCtaGeom('compact');
+    const jh = MZ.jumpCtaGeom('corner');
+    tl.fromTo(MZ.els.jumpCta, { x: jc.x, y: jc.y },
+      { x: jh.x, y: jh.y, duration: 1.2, ease: 'power3.inOut', immediateRender: false }, 0.12);
+    tl.fromTo(MZ.els.jumpCta, { scale: 1.06, rotation: 2.5 },
+      { scale: 1, rotation: 0, duration: 0.38, ease: 'back.out(1.6)', immediateRender: false }, 1.32);
+
     tl.to(MZ.els.ows, { x: oc.x, y: oc.y, scale: 1, autoAlpha: 1, duration: 0.01, immediateRender: false }, 0.55);
     MZ.els.owsWords.forEach((w, i) => {
       tl.fromTo(w, { yPercent: 115 }, { yPercent: 0, duration: 0.65, ease: 'power4.out', immediateRender: false }, 0.72 + i * 0.11);
@@ -604,6 +614,25 @@ window.MZT = (function () {
     MZ.els.letters.forEach((el, i) => {
       tl.to(el, { x: fl.pos(i).x, y: fl.y, scale: fl.s, duration: 1.05, ease: 'power4.inOut' }, 0.3 + i * 0.045);
     });
+
+    // persistent companion docks: the Book Scoping Call chip glides down from
+    // its top-right home into the CTA slot and fades into its idle twin — the
+    // booking pill's identical "Book Scoping Call" button pops up at exactly
+    // this point right before it lands. After a jump arrival it stays
+    // dissolved (MZ.chipFlightSkip parks it hidden through this flight).
+    const jCorner = MZ.jumpCtaGeom('corner');
+    tl.call(() => {                                       // per-play: safe across cached replays
+      const chip = MZ.els.jumpCta;
+      if (!chip) return;
+      gsap.set(chip, { x: jCorner.x, y: jCorner.y, scale: 1, rotation: 0,
+        autoAlpha: MZ.chipFlightSkip ? 0 : 1 });
+    }, null, 1.0);
+    tl.fromTo(MZ.els.jumpCta, { x: jCorner.x, y: jCorner.y },
+      { x: cg.pill.x, y: cg.pill.y, duration: 1.55, ease: 'power3.inOut', immediateRender: false }, 1.0);
+    tl.call(() => {
+      const chip = MZ.els.jumpCta;
+      if (chip) gsap.to(chip, { autoAlpha: 0, duration: 0.3, ease: 'power1.in' });
+    }, null, 2.55);
 
     // CTA lines: left-anchored; the pure-CSS Teletype fx draws them in
     tl.set(MZ.els.cta1, { x: cg.l1.x - (MZ.els.ctaFullW ? MZ.els.ctaFullW[0] / 2 : 0), y: cg.l1.y, immediateRender: false }, 1.15);
